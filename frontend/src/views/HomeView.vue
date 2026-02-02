@@ -16,8 +16,13 @@
         <div class="info">
           <h3>{{ prenda.nombre }}</h3>
           <p class="precio">${{ prenda.precio }}</p>
+          <button class="btn-pedido">Consultar por WhatsApp</button>
         </div>
       </div>
+    </div>
+    
+    <div v-if="!cargando && prendas.length === 0" class="empty">
+      Todavía no hay prendas publicadas. ¡Ve al panel de Admin!
     </div>
   </div>
 </template>
