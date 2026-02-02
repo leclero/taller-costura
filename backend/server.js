@@ -23,7 +23,7 @@ app.use('/api/prendas', prendaRoutes);
 
 app.get('/', (req, res) => res.send("API Funcionando 🪡"));
 
-// --- PUERTO Y ARRANQUE ---
+// --- PUERTO ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Puerto: ${PORT}`);

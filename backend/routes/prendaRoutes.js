@@ -15,8 +15,10 @@ router.post('/', upload.single('imagen'), async (req, res) => {
             formato: req.file.mimetype.startsWith('video') ? 'video' : 'imagen'
         });
 
-        await nuevaPrenda.save();
-        res.status(201).json(nuevaPrenda);
+        const prendaGuardada = await nuevaPrenda.save();
+        console.log("✅ Prenda guardada con éxito");
+        res.status(201).json(prendaGuardada);
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
