@@ -69,13 +69,13 @@ categoria: 'Confección'
 });
 
 const handleDrop = (e) => {
-dragging.value = false;
-const droppedFile = e.dataTransfer.files[0];
-if (droppedFile) file.value = droppedFile;
+    dragging.value = false;
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) file.value = droppedFile;
 };
 
 const handleFileSelect = (e) => {
-file.value = e.target.files[0];
+    file.value = e.target.files[0];
 };
 
 const subirProducto = async () => {
