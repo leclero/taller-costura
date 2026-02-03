@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@/*": ["src/*"]
+    },
+    "checkJs": false
   },
   "exclude": ["node_modules", "dist"]
 }
