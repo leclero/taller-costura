@@ -164,12 +164,15 @@ const eliminarProducto = async (id) => {
 </script>
 
 <style scoped>
-/* Tus estilos anteriores + estos nuevos */
-.list-section { margin-top: 50px; }
-.product-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
-.product-table th, .product-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-.mini-img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
-.btn-delete { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-.btn-delete:hover { background: #cc0000; }
-/* ... (resto de tus estilos) ... */
+.admin-container { max-width: 600px; margin: 40px auto; padding: 20px; font-family: sans-serif; }
+.upload-card { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.drop-zone { border: 2px dashed #d1d1d1; padding: 40px; text-align: center; border-radius: 10px; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+.drop-zone:hover, .is-dragging { border-color: #ff69b4; background: #fff5f8; }
+.icon { font-size: 3rem; margin-bottom: 10px; }
+.form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px; }
+.btn-submit { width: 100%; padding: 15px; background: #ff69b4; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+.btn-submit:disabled { background: #ccc; }
+.btn-clear { background: #eee; border: none; padding: 5px 10px; border-radius: 4px; margin-top: 10px; cursor: pointer; }
 </style>
