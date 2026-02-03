@@ -1,93 +1,88 @@
 <template>
   <div class="admin-container">
-    <h1>Panel de Administración - Smith Tailor</h1>
-    
-    <form @submit.prevent="agregarPrenda" class="admin-form">
-      <div class="form-grid">
-        <div class="form-info">
-          <div class="form-group">
-            <label>Nombre del Trabajo:</label>
-            <input v-model="nuevaPrenda.nombre" placeholder="Ej: Vestido de Gala" required />
-          </div>
+    <h1>Panel de Control - Smith Teilor</h1>
 
-          <div class="form-group">
-            <label>Categoría / Sección:</label>
-            <select v-model="nuevaPrenda.categoria" required>
-              <option value="Confección">Confección (Carrusel)</option>
-              <option value="Arreglo">Arreglo / Reparación (Grilla)</option>
-              <option value="Nuestro Trabajo">Nuestro Trabajo (Videos/Fotos)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Precio estimado ($):</label>
-            <input type="number" v-model="nuevaPrenda.precio" required />
-          </div>
+    <section class="admin-form-section">
+      <h3>{{ editando ? '✏️ Editando: ' + form.nombre : '🆕 Agregar Nuevo Producto' }}</h3>
+      
+      <form @submit.prevent="guardarProducto" class="admin-form">
+        <div class="input-group">
+          <input v-model="form.nombre" placeholder="Nombre del producto" required />
+          <input v-model.number="form.precio" type="number" placeholder="Precio ($)" required />
         </div>
 
-        <div class="form-upload">
-          <label>Imagen o Video del Trabajo:</label>
-          <div 
-            class="drop-zone" 
-            :class="{ 'dragging': isDragging }"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="handleDrop"
-            @click="$refs.fileInput.click()"
-          >
+        <select v-model="form.categoria">
+          <option value="Confección">Confección</option>
+          <option value="Arreglo">Arreglo</option>
+          <option value="Nuestro Trabajo">Nuestro Trabajo</option>
+        </select>
+
+        <div 
+          class="drop-zone" 
+          @dragover.prevent="dragOver = true" 
+          @dragleave="dragOver = false" 
+          @drop.prevent="handleDrop"
+          :class="{ 'drag-active': dragOver }"
+        >
+          <div v-if="!form.imagenUrl" class="upload-options">
+            <p>Arrastra una imagen aquí</p>
+            <span>o</span>
+            <button type="button" class="btn-browse" @click="$refs.fileInput.click()">
+              Buscar en mi PC
+            </button>
             <input 
               type="file" 
               ref="fileInput" 
-              @change="handleFileSelect" 
+              style="display: none" 
               accept="image/*,video/*" 
-              hidden 
+              @change="handleFileSelect"
             />
-            <div v-if="!previewUrl" class="drop-placeholder">
-              <span>📁</span>
-              <p>Arrastra tu foto/video aquí o haz clic</p>
-            </div>
-            <div v-else class="preview-container">
-              <video v-if="esVideo(previewUrl)" :src="previewUrl" class="preview-media"></video>
-              <img v-else :src="previewUrl" class="preview-media" />
-              <button @click.stop="previewUrl = null" class="btn-clear">Cambiar</button>
-            </div>
+          </div>
+          
+          <div v-else class="preview-container">
+            <img :src="form.imagenUrl" class="mini-preview" />
+            <button type="button" @click="form.imagenUrl = ''" class="btn-remove-img">Cambiar archivo</button>
           </div>
         </div>
-      </div>
 
-      <button type="submit" class="btn-save" :disabled="subiendo">
-        {{ subiendo ? 'Subiendo...' : 'Guardar Trabajo' }}
-      </button>
-    </form>
+        <input v-model="form.imagenUrl" placeholder="URL de la imagen (se genera automáticamente)" required />
+        
+        <div class="form-buttons">
+          <button type="submit" class="btn-save">
+            {{ editando ? 'Guardar Cambios' : 'Publicar Producto' }}
+          </button>
+          <button v-if="editando" type="button" @click="cancelarEdicion" class="btn-cancel">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </section>
 
-    <div class="lista-prendas">
-      <h2>Trabajos Publicados</h2>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Vista</th>
-              <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="prenda in prendas" :key="prenda._id">
-              <td>
-                <img :src="prenda.imagenUrl" class="mini-img" v-if="!esVideo(prenda.imagenUrl)" />
-                <span v-else>🎥 Video</span>
-              </td>
-              <td>{{ prenda.nombre }}</td>
-              <td>{{ prenda.categoria }}</td>
-              <td>
-                <button @click="eliminarPrenda(prenda._id)" class="btn-delete">Eliminar</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <section class="admin-list-section">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Vista</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in prendas" :key="p._id">
+            <td><img :src="p.imagenUrl" class="table-img" /></td>
+            <td>{{ p.nombre }}</td>
+            <td><span class="badge-cat">{{ p.categoria }}</span></td>
+            <td><strong>${{ p.precio.toLocaleString() }}</strong></td>
+            <td class="actions-td">
+              <button @click="prepararEdicion(p)" class="btn-edit" title="Editar">✏️</button>
+              <button @click="eliminarProducto(p._id)" class="btn-delete" title="Eliminar">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
   </div>
 </template>
 
@@ -95,119 +90,138 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
 const prendas = ref([]);
-const isDragging = ref(false);
-const previewUrl = ref(null);
-const fileToUpload = ref(null);
-const subiendo = ref(false);
+const dragOver = ref(false);
+const editando = ref(false);
+const editId = ref(null);
+const fileInput = ref(null);
 
-const nuevaPrenda = ref({
+const form = ref({
   nombre: '',
+  precio: '',
   categoria: 'Confección',
-  precio: 0
+  imagenUrl: ''
 });
 
-const obtenerPrendas = async () => {
-  const res = await axios.get(API_URL);
-  prendas.value = res.data;
+const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+
+const cargarPrendas = async () => {
+  try {
+    const res = await axios.get(API_URL);
+    prendas.value = res.data;
+  } catch (e) { console.error(e); }
 };
 
-// Manejo de archivos
-const handleFileSelect = (e) => {
-  const file = e.target.files[0];
-  if (file) processFile(file);
+// Función para procesar el archivo (Sea por Drop o por Buscador)
+const procesarArchivo = (file) => {
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      form.value.imagenUrl = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 };
 
 const handleDrop = (e) => {
-  isDragging.value = false;
+  dragOver.value = false;
   const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
+  procesarArchivo(file);
 };
 
-const processFile = (file) => {
-  fileToUpload.value = file;
-  previewUrl.value = URL.createObjectURL(file);
+const handleFileSelect = (e) => {
+  const file = e.target.files[0];
+  procesarArchivo(file);
 };
 
-const esVideo = (url) => url && (url.includes('video') || url.match(/\.(mp4|mov|webm)$/i));
-
-const agregarPrenda = async () => {
-  if (!fileToUpload.value) return alert("Por favor sube una imagen o video");
-  
-  subiendo.value = true;
-  const formData = new FormData();
-  formData.append('nombre', nuevaPrenda.value.nombre);
-  formData.append('categoria', nuevaPrenda.value.categoria);
-  formData.append('precio', nuevaPrenda.value.precio);
-  formData.append('imagen', fileToUpload.value); // El backend debe recibir 'imagen'
-
+const guardarProducto = async () => {
   try {
-    await axios.post(API_URL, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    alert("¡Publicado correctamente!");
-    nuevaPrenda.value = { nombre: '', categoria: 'Confección', precio: 0 };
-    previewUrl.value = null;
-    fileToUpload.value = null;
-    obtenerPrendas();
-  } catch (err) {
-    console.error(err);
-    alert("Error al subir. Revisa el tamaño del archivo.");
-  } finally {
-    subiendo.value = false;
+    if (editando.value) {
+      await axios.put(`${API_URL}/${editId.value}`, form.value);
+      alert("¡Actualizado!");
+    } else {
+      await axios.post(API_URL, form.value);
+      alert("¡Creado!");
+    }
+    cancelarEdicion();
+    cargarPrendas();
+  } catch (e) { alert("Error al guardar"); }
+};
+
+const eliminarProducto = async (id) => {
+  if (confirm("¿Eliminar este producto permanentemente?")) {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      cargarPrendas();
+    } catch (e) { alert("Error al eliminar"); }
   }
 };
 
-const eliminarPrenda = async (id) => {
-  if (confirm("¿Eliminar este trabajo?")) {
-    await axios.delete(`${API_URL}/${id}`);
-    obtenerPrendas();
-  }
+const prepararEdicion = (p) => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  editando.value = true;
+  editId.value = p._id;
+  form.value = { ...p };
 };
 
-onMounted(obtenerPrendas);
+const cancelarEdicion = () => {
+  form.value = { nombre: '', precio: '', categoria: 'Confección', imagenUrl: '' };
+  editando.value = false;
+  editId.value = null;
+};
+
+onMounted(cargarPrendas);
 </script>
 
 <style scoped>
-.admin-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
-.admin-form { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+.admin-container { max-width: 1000px; margin: 20px auto; padding: 20px; font-family: 'Inter', sans-serif; }
+.admin-form { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; }
+.input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+input, select { padding: 12px; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
 
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; }
-
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #004d4d; }
-input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
-
-/* ESTILOS DROP ZONE */
-.drop-zone {
-  border: 2px dashed #004d4d;
-  border-radius: 15px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.3s;
-  background: #f0fafa;
-  position: relative;
-  overflow: hidden;
+/* DROP ZONE Y BOTÓN BUSCAR */
+.drop-zone { 
+  border: 2px dashed #004d4d; 
+  border-radius: 12px; 
+  padding: 30px; 
+  text-align: center; 
+  margin: 15px 0; 
+  background: #f0f7f7;
+  color: #004d4d;
 }
-.drop-zone.dragging { background: #004d4d; color: white; border-style: solid; }
-.drop-placeholder span { font-size: 3rem; }
-.preview-media { width: 100%; height: 100%; object-fit: cover; }
-.btn-clear { position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.7); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+.upload-options { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.btn-browse { 
+  background: #004d4d; 
+  color: white; 
+  border: none; 
+  padding: 8px 16px; 
+  border-radius: 20px; 
+  cursor: pointer; 
+  font-weight: bold;
+}
+.btn-remove-img { 
+  background: #ff4d4d; 
+  color: white; 
+  border: none; 
+  padding: 5px 12px; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  margin-top: 10px;
+}
+.drag-active { background: #d1eaea; }
+.mini-preview { height: 120px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-.btn-save { width: 100%; padding: 15px; background: #004d4d; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-.btn-save:disabled { background: #ccc; }
+/* TABLA */
+.admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+.admin-table th { background: #004d4d; color: white; padding: 15px; text-align: left; }
+.admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
+.table-img { width: 45px; height: 45px; object-fit: cover; border-radius: 5px; }
+.badge-cat { background: #e0f2f2; color: #004d4d; padding: 4px 8px; border-radius: 5px; font-size: 0.8rem; }
 
-.mini-img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
-.table-wrapper { background: white; border-radius: 10px; overflow: hidden; margin-top: 20px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #004d4d; color: white; }
-.btn-delete { background: #ff4d4d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-
-@media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+.actions-td { display: flex; gap: 8px; }
+.btn-edit { background: #f39c12; border: none; padding: 8px; border-radius: 5px; cursor: pointer; color: white; }
+.btn-delete { background: #e74c3c; border: none; padding: 8px; border-radius: 5px; cursor: pointer; color: white; }
+.btn-save { background: #004d4d; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+.btn-cancel { background: #888; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; }
+.form-buttons { display: flex; gap: 10px; margin-top: 15px; }
 </style>
