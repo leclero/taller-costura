@@ -100,32 +100,11 @@
       </div>
 
       <div class="admin-card config-card">
-        <h3 class="card-subtitle">🔐 Mis Datos de Acceso</h3>
-        <p class="helper-text">Solo tú puedes modificar tu usuario y contraseña.</p>
-        
-        <div class="admin-form-grid">
-          <div class="form-group">
-            <label>Mi Usuario</label>
-            <input v-model="config.nuevoUsuario" class="custom-input" />
-          </div>
-          <div class="form-group">
-            <label>Nueva Contraseña</label>
-            <div class="password-wrapper">
-              <input 
-                :type="showPass ? 'text' : 'password'" 
-                v-model="config.nuevaPass" 
-                placeholder="Escribe para cambiar" 
-                class="custom-input" 
-              />
-              <button @click="showPass = !showPass" class="btn-eye">
-                {{ showPass ? '👁️' : '🙈' }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <h3 class="card-subtitle">🔐 Crear Segundo Administrador</h3>
+        <p class="helper-text">Al hacer clic en el botón, se creará el usuario <b>Dueño</b> con la clave <b>leyneth</b>.</p>
         
         <div class="form-actions">
-          <button @click="actualizarMiPerfil" class="btn-save-config">Guardar mis cambios</button>
+          <button @click="actualizarMiPerfil" class="btn-save-config">¡Crear usuario Dueño ahora!</button>
         </div>
       </div>
 
@@ -146,15 +125,12 @@ const editandoId = ref(null);
 const nuevo = ref({ nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' });
 const fileInput = ref(null);
 
-// LÓGICA DE USUARIO LOGUEADO
 const nombreUsuarioActual = ref(localStorage.getItem('userName'));
 const rolActual = ref(localStorage.getItem('userRol'));
-const config = ref({ nuevoUsuario: localStorage.getItem('userName') || '', nuevaPass: '' });
+const config = ref({ nuevoUsuario: '', nuevaPass: '' });
 const showPass = ref(false);
 
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
-const AUTH_URL = 'https://api-taller-costura.onrender.com/api/auth/update-profile';
-
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 const UPLOAD_PRESET = 'taller-smith';
 
@@ -165,25 +141,20 @@ const obtener = async () => {
   } catch (e) { console.error(e); }
 };
 
+// --- FUNCIÓN MODIFICADA PARA EL TRUCO DE CREACIÓN ---
 const actualizarMiPerfil = async () => {
-  const myId = localStorage.getItem('userId');
-  if (!config.value.nuevoUsuario || !config.value.nuevaPass) {
-    return alert("Por favor completa ambos campos.");
-  }
   try {
-    const res = await axios.put(`${AUTH_URL}/${myId}`, {
-      nuevoUsuario: config.value.nuevoUsuario,
-      nuevaPass: config.value.nuevaPass,
-      solicitanteId: myId
+    const res = await axios.post('https://api-taller-costura.onrender.com/api/auth/create-initial', {
+      username: "Dueño",
+      password: "leyneth",
+      rol: "dueño"
     });
-    alert(res.data.message);
-    localStorage.setItem('userName', config.value.nuevoUsuario);
-    nombreUsuarioActual.value = config.value.nuevoUsuario;
-    config.value.nuevaPass = '';
+    alert("¡Usuario DUEÑO creado con éxito! Ya podés volver el código a la normalidad.");
   } catch (error) {
-    alert(error.response?.data?.error || "Error al actualizar");
+    alert(error.response?.data?.error || "Error: El usuario ya existe o el servidor falló.");
   }
 };
+// ----------------------------------------------------
 
 const handleDrop = (e) => {
   isDragging.value = false;
@@ -250,7 +221,6 @@ onMounted(obtener);
 </script>
 
 <style scoped>
-/* Estilos mantenidos y mejorados */
 .admin-page-wrapper { padding: 120px 0 80px; min-height: 100vh; background-color: #f4f7f7; font-family: 'Inter', sans-serif; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 .top-admin-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -264,8 +234,6 @@ onMounted(obtener);
 .full-width { grid-column: span 2; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; font-size: 1rem; outline: none; box-sizing: border-box; }
-.password-wrapper { position: relative; display: flex; align-items: center; }
-.btn-eye { position: absolute; right: 15px; background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 .config-card { border-top: 5px solid #2ecc71; }
 .btn-save-config { background: #2ecc71; color: white; border: none; padding: 16px 30px; border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%; }
 .form-actions { display: flex; gap: 15px; margin-top: 30px; }
