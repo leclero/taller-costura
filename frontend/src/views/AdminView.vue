@@ -1,123 +1,133 @@
 <template>
 <div class="admin-page-wrapper">
     <div class="admin-container">
-      <div class="top-admin-nav">
+    <div class="top-admin-nav">
         <button @click="logout" class="btn-logout">Cerrar Sesión 🔒</button>
-      </div>
-      
-      <h1 class="admin-title">Panel de Control - Smith Teilor</h1>
+    </div>
+    
+    <h1 class="admin-title">Panel de Control - Smith Teilor</h1>
 
-      <div class="admin-card">
+    <div class="admin-card">
         <h3 class="card-subtitle">
-          {{ editandoId ? '📝 Editando Producto' : '🆕 Agregar Nuevo Producto' }}
+        {{ editandoId ? '📝 Editando Producto' : '🆕 Agregar Nuevo Producto' }}
         </h3>
         
         <div class="admin-form-grid">
-          <div class="form-group">
+        <div class="form-group">
             <label>Nombre del Producto</label>
             <input v-model="nuevo.nombre" placeholder="Ej: Vestido de Gala" class="custom-input" />
-          </div>
-          <div class="form-group">
+        </div>
+        <div class="form-group">
             <label>Precio ($)</label>
             <input type="number" v-model="nuevo.precio" placeholder="0" class="custom-input" />
-          </div>
-          <div class="form-group full-width">
+        </div>
+        <div class="form-group full-width">
             <label>Categoría</label>
             <select v-model="nuevo.categoria" class="custom-select">
-              <option value="Confección">Confección</option>
-              <option value="Arreglo">Arreglo</option>
-              <option value="Nuestro Trabajo">Nuestro Trabajo (Carrusel)</option>
+            <option value="Confección">Confección</option>
+            <option value="Arreglo">Arreglo</option>
+            <option value="Nuestro Trabajo">Nuestro Trabajo (Carrusel)</option>
             </select>
-          </div>
-          
-          <div class="form-group full-width">
+        </div>
+        
+        <div class="form-group full-width">
             <label>Imagen del Producto</label>
             <div 
-              class="st-drop-zone" 
-              :class="{ 'drop-active': isDragging, 'is-loading': isUploading }"
-              @dragover.prevent="isDragging = true"
-              @dragleave.prevent="isDragging = false"
-              @drop.prevent="handleDrop"
+            class="st-drop-zone" 
+            :class="{ 'drop-active': isDragging, 'is-loading': isUploading }"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handleDrop"
             >
-              <div v-if="isUploading" class="upload-status">
+            <div v-if="isUploading" class="upload-status">
                 <div class="spinner"></div>
                 <p>Subiendo imagen a Cloudinary...</p>
-              </div>
+            </div>
 
-              <div v-else-if="!nuevo.imagenUrl" class="drop-placeholder">
+            <div v-else-if="!nuevo.imagenUrl" class="drop-placeholder">
                 <div class="icon-box">📂</div>
                 <button type="button" class="st-btn-search" @click="$refs.fileInput.click()">
-                  Buscar en mi PC
+                Buscar en mi PC
                 </button>
                 <p class="drop-text">o arrastra tu archivo aquí</p>
                 <input type="file" ref="fileInput" @change="handleFileSelect" hidden accept="image/*" />
-              </div>
+            </div>
 
-              <div v-else class="preview-container">
+            <div v-else class="preview-container">
                 <img :src="nuevo.imagenUrl" class="drop-preview" />
                 <button @click="nuevo.imagenUrl = ''" class="btn-remove-img">🗑️ Quitar y cambiar imagen</button>
-              </div>
+            </div>
             </div>
             <input v-model="nuevo.imagenUrl" placeholder="La URL se generará automáticamente" class="custom-input mt-10 url-readonly" readonly />
-          </div>
+        </div>
         </div>
 
         <div class="form-actions">
-          <button @click="guardarProducto" class="btn-publish" :disabled="isUploading">
+        <button @click="guardarProducto" class="btn-publish" :disabled="isUploading">
             {{ editandoId ? 'Actualizar Producto' : 'Publicar Producto' }}
-          </button>
-          <button v-if="editandoId" @click="cancelarEdicion" class="btn-cancel">Cancelar</button>
+        </button>
+        <button v-if="editandoId" @click="cancelarEdicion" class="btn-cancel">Cancelar</button>
         </div>
-      </div>
+    </div>
 
-      <div class="admin-card">
+    <div class="admin-card">
         <h3 class="card-subtitle">📦 Productos Existentes</h3>
         <div class="table-responsive">
-          <table class="products-table">
+        <table class="products-table">
             <thead>
-              <tr>
+            <tr>
                 <th>Imagen</th>
                 <th>Nombre</th>
                 <th>Categoría</th>
                 <th>Precio</th>
                 <th>Acciones</th>
-              </tr>
+            </tr>
             </thead>
             <tbody>
-              <tr v-for="p in productos" :key="p._id" class="product-row">
+            <tr v-for="p in productos" :key="p._id" class="product-row">
                 <td data-label="Imagen"><img :src="p.imagenUrl" class="img-preview" @error="handleImgError" /></td>
                 <td data-label="Nombre"><span class="product-name">{{ p.nombre }}</span></td>
                 <td data-label="Categoría"><span class="badge">{{ p.categoria }}</span></td>
                 <td data-label="Precio"><span class="product-price">${{ p.precio.toLocaleString() }}</span></td>
                 <td class="actions-cell">
-                  <button @click="cargarEdicion(p)" class="btn-edit" title="Editar">✏️</button>
-                  <button @click="eliminar(p._id)" class="btn-delete" title="Eliminar">🗑️</button>
+                <button @click="cargarEdicion(p)" class="btn-edit" title="Editar">✏️</button>
+                <button @click="eliminar(p._id)" class="btn-delete" title="Eliminar">🗑️</button>
                 </td>
-              </tr>
+            </tr>
             </tbody>
-          </table>
+        </table>
         </div>
-      </div>
+    </div>
 
-      <div class="admin-card config-card">
+    <div class="admin-card config-card">
         <h3 class="card-subtitle">🔐 Configuración de Acceso</h3>
         <p class="helper-text">Escribe el nuevo usuario y contraseña para guardar en la base de datos.</p>
         
         <div class="admin-form-grid">
-          <div class="form-group">
+        <div class="form-group">
             <label>Nuevo Usuario</label>
             <input v-model="config.nuevoUsuario" placeholder="Ej: admin_smith" class="custom-input" />
-          </div>
-          <div class="form-group">
+        </div>
+        <div class="form-group">
             <label>Nueva Contraseña</label>
-            <input v-model="config.nuevaPass" type="password" placeholder="••••••••" class="custom-input" />
-          </div>
+            <div class="password-wrapper">
+            <input 
+                :type="showPass ? 'text' : 'password'" 
+                v-model="config.nuevaPass" 
+                placeholder="••••••••" 
+                class="custom-input" 
+            />
+            <button @click="showPass = !showPass" class="btn-eye">
+                {{ showPass ? '👁️' : '🙈' }}
+            </button>
+            </div>
+        </div>
         </div>
         
         <div class="form-actions">
-          <button @click="actualizarAcceso" class="btn-save-config">Actualizar Credenciales en DB</button>
+        <button @click="actualizarAcceso" class="btn-save-config">Actualizar Credenciales en DB</button>
         </div>
-      </div>
+    </div>
 
     </div>
 </div>
@@ -138,6 +148,7 @@ const fileInput = ref(null);
 
 // Datos para la configuración de usuario
 const config = ref({ nuevoUsuario: '', nuevaPass: '' });
+const showPass = ref(false);
 
 // URLs de API
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
@@ -148,118 +159,118 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
-  try {
+try {
     const res = await axios.get(API_URL);
     productos.value = Array.isArray(res.data) ? res.data : [];
-  } catch (e) { 
+} catch (e) { 
     console.error("Error al obtener productos:", e.response?.status, e.message); 
-  }
+}
 };
 
 const actualizarAcceso = async () => {
-  if (!config.value.nuevoUsuario || !config.value.nuevaPass) {
-    return alert("Por favor completa ambos campos para actualizar el acceso.");
-  }
-  
-  try {
+if (!config.value.nuevoUsuario || !config.value.nuevaPass) {
+    return alert("Por favor completa ambos campos.");
+}
+
+try {
     const res = await axios.put(AUTH_URL, config.value);
     alert(res.data.message);
     config.value = { nuevoUsuario: '', nuevaPass: '' }; 
-  } catch (error) {
+} catch (error) {
     console.error(error);
-    alert("Error al actualizar los datos en la base de datos.");
-  }
+    alert("Error al actualizar los datos.");
+}
 };
 
 const handleDrop = (e) => {
-  isDragging.value = false;
-  const file = e.dataTransfer.files[0];
-  if (file) subirImagen(file);
+isDragging.value = false;
+const file = e.dataTransfer.files[0];
+if (file) subirImagen(file);
 };
 
 const handleFileSelect = (e) => {
-  const file = e.target.files[0];
-  if (file) subirImagen(file);
+const file = e.target.files[0];
+if (file) subirImagen(file);
 };
 
 const subirImagen = async (file) => {
-  isUploading.value = true;
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', UPLOAD_PRESET);
+isUploading.value = true;
+const formData = new FormData();
+formData.append('file', file);
+formData.append('upload_preset', UPLOAD_PRESET);
 
-  try {
+try {
     const res = await axios.post(CLOUDINARY_URL, formData);
     nuevo.value.imagenUrl = res.data.secure_url;
-  } catch (err) {
+} catch (err) {
     console.error("Error Cloudinary:", err);
     alert("Error al subir la imagen.");
-  } finally {
+} finally {
     isUploading.value = false;
-  }
+}
 };
 
 const guardarProducto = async () => {
-  if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
+if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
     return alert("Por favor, completa el nombre y sube una imagen.");
-  }
+}
 
-  const productoFinal = {
+const productoFinal = {
     nombre: String(nuevo.value.nombre).trim(),
     precio: Number(nuevo.value.precio),
     categoria: nuevo.value.categoria,
     imagenUrl: nuevo.value.imagenUrl
-  };
+};
 
-  isUploading.value = true;
+isUploading.value = true;
 
-  try {
+try {
     if (editandoId.value) {
-      await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
+    await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
     } else {
-      await axios.post(API_URL, productoFinal);
+    await axios.post(API_URL, productoFinal);
     }
     
     alert("¡Producto publicado con éxito!");
     cancelarEdicion();
     await obtener();
-  } catch (error) {
+} catch (error) {
     console.error("Error detallado:", error.response?.data);
     alert("Error al guardar producto.");
-  } finally {
+} finally {
     isUploading.value = false;
-  }
+}
 };
 
 const cargarEdicion = (p) => {
-  editandoId.value = p._id;
-  nuevo.value = { ...p };
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+editandoId.value = p._id;
+nuevo.value = { ...p };
+window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const cancelarEdicion = () => {
-  editandoId.value = null;
-  nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
+editandoId.value = null;
+nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
 };
 
 const eliminar = async (id) => {
-  if(confirm("¿Eliminar este producto definitivamente?")) {
+if(confirm("¿Eliminar este producto definitivamente?")) {
     try {
-      await axios.delete(`${API_URL}/${id}`);
-      obtener();
+    await axios.delete(`${API_URL}/${id}`);
+    obtener();
     } catch (e) {
-      alert("No se pudo eliminar el producto.");
+    alert("No se pudo eliminar el producto.");
     }
-  }
+}
 };
 
 const logout = () => {
-  localStorage.removeItem('isLogged');
-  router.push('/login');
+localStorage.removeItem('isLogged');
+router.push('/login');
 };
 
 const handleImgError = (e) => { 
-  e.target.style.display = 'none'; 
+e.target.style.display = 'none'; 
 };
 
 onMounted(obtener);
@@ -283,45 +294,50 @@ onMounted(obtener);
 
 .custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; font-size: 1rem; outline: none; transition: 0.3s; box-sizing: border-box; }
 .custom-input:focus { border-color: #004d4d; }
-.url-readonly { background: #f8fafc; color: #94a3b8; font-size: 0.8rem; cursor: not-allowed; }
 
-/* CONFIG CARD EXTRA */
+/* PASSWORD WRAPPER */
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.btn-eye { position: absolute; right: 15px; background: none; border: none; cursor: pointer; font-size: 1.2rem; }
+
+/* CONFIG CARD */
 .config-card { border-top: 5px solid #2ecc71; }
 .helper-text { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
 .btn-save-config { 
-  background: #2ecc71; 
-  color: white; 
-  border: none; 
-  padding: 16px 30px; 
-  border-radius: 14px; 
-  font-weight: 800; 
-  cursor: pointer; 
-  transition: 0.3s;
-  width: 100%;
+background: #2ecc71; 
+color: white; 
+border: none; 
+padding: 16px 30px; 
+border-radius: 14px; 
+font-weight: 800; 
+cursor: pointer; 
+transition: 0.3s;
+width: 100%;
 }
 .btn-save-config:hover { background: #27ae60; transform: translateY(-2px); }
 
-/* DROP ZONE */
-.st-drop-zone {
-  border: 2px dashed #cbd5e0;
-  border-radius: 20px;
-  padding: 40px;
-  text-align: center;
-  background: #f0f7ff;
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* BOTONES PRODUCTO (Restaurado) */
+.form-actions { display: flex; gap: 15px; margin-top: 30px; }
+.btn-publish { 
+flex: 2; 
+background: #004d4d; 
+color: white; 
+border: none; 
+padding: 18px; 
+border-radius: 14px; 
+font-weight: 800; 
+cursor: pointer; 
+font-size: 1rem; 
+transition: 0.3s; 
 }
-.drop-active { border-color: #004d4d; background: #e6fffa; transform: scale(1.01); }
-.icon-box { font-size: 3rem; margin-bottom: 10px; }
-.st-btn-search { background: #004d4d; color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; }
-.btn-remove-img { color: #ef4444; border: none; background: #fee2e2; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.btn-publish:hover:not(:disabled) { background: #003333; transform: translateY(-2px); }
+.btn-publish:disabled { background: #cbd5e0; cursor: not-allowed; }
+.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; }
 
-/* TABLA */
+/* TABLA Y OTROS */
+.st-drop-zone { border: 2px dashed #cbd5e0; border-radius: 20px; padding: 40px; text-align: center; background: #f0f7ff; min-height: 200px; display: flex; align-items: center; justify-content: center; position: relative; }
+.drop-active { border-color: #004d4d; background: #e6fffa; }
+.icon-box { font-size: 3rem; margin-bottom: 10px; }
+.st-btn-search { background: #004d4d; color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; }
 .table-responsive { overflow-x: auto; }
 .products-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
 .product-row td { padding: 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
@@ -332,7 +348,7 @@ onMounted(obtener);
 .btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 10px; border-radius: 10px; cursor: pointer; }
 
 @media (max-width: 768px) {
-  .admin-form-grid { grid-template-columns: 1fr; }
-  .full-width { grid-column: span 1; }
+.admin-form-grid { grid-template-columns: 1fr; }
+.full-width { grid-column: span 1; }
 }
 </style>
