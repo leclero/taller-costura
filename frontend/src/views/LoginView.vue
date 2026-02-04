@@ -35,13 +35,16 @@ const error = ref(false);
 const router = useRouter();
 
 const handleLogin = () => {
-  // CONFIGURACIÓN DE ACCESO
-  if (user.value === 'admin' && pass.value === 'smith2026') {
+  // Leemos las credenciales desde el archivo .env (prefijo VITE_)
+  const correctUser = import.meta.env.VITE_ADMIN_USER;
+  const correctPass = import.meta.env.VITE_ADMIN_PASS;
+
+  if (user.value === correctUser && pass.value === correctPass) {
     localStorage.setItem('isLogged', 'true');
     router.push('/admin');
   } else {
     error.value = true;
-    pass.value = '';
+    pass.value = ''; // Limpiamos la contraseña si falla
   }
 };
 </script>
