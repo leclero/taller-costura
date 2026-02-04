@@ -98,6 +98,27 @@
           </table>
         </div>
       </div>
+
+      <div class="admin-card config-card">
+        <h3 class="card-subtitle">🔐 Configuración de Acceso</h3>
+        <p class="helper-text">Escribe el nuevo usuario y contraseña para guardar en la base de datos.</p>
+        
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label>Nuevo Usuario</label>
+            <input v-model="config.nuevoUsuario" placeholder="Ej: admin_smith" class="custom-input" />
+          </div>
+          <div class="form-group">
+            <label>Nueva Contraseña</label>
+            <input v-model="config.nuevaPass" type="password" placeholder="••••••••" class="custom-input" />
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button @click="actualizarAcceso" class="btn-save-config">Actualizar Credenciales en DB</button>
+        </div>
+      </div>
+
     </div>
 </div>
 </template>
@@ -115,20 +136,38 @@ const editandoId = ref(null);
 const nuevo = ref({ nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' });
 const fileInput = ref(null);
 
-// URL Base de tu API en Render
-const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+// Datos para la configuración de usuario
+const config = ref({ nuevoUsuario: '', nuevaPass: '' });
 
-// --- CONFIGURACIÓN CLOUDINARY ---
+// URLs de API
+const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+const AUTH_URL = 'https://api-taller-costura.onrender.com/api/auth/update-admin';
+
+// CONFIGURACIÓN CLOUDINARY
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
   try {
     const res = await axios.get(API_URL);
-    // Verificamos que la respuesta sea un array antes de asignar
     productos.value = Array.isArray(res.data) ? res.data : [];
   } catch (e) { 
     console.error("Error al obtener productos:", e.response?.status, e.message); 
+  }
+};
+
+const actualizarAcceso = async () => {
+  if (!config.value.nuevoUsuario || !config.value.nuevaPass) {
+    return alert("Por favor completa ambos campos para actualizar el acceso.");
+  }
+  
+  try {
+    const res = await axios.put(AUTH_URL, config.value);
+    alert(res.data.message);
+    config.value = { nuevoUsuario: '', nuevaPass: '' }; 
+  } catch (error) {
+    console.error(error);
+    alert("Error al actualizar los datos en la base de datos.");
   }
 };
 
@@ -154,7 +193,7 @@ const subirImagen = async (file) => {
     nuevo.value.imagenUrl = res.data.secure_url;
   } catch (err) {
     console.error("Error Cloudinary:", err);
-    alert("Error al subir la imagen. Verifica que el preset sea 'Unsigned'.");
+    alert("Error al subir la imagen.");
   } finally {
     isUploading.value = false;
   }
@@ -165,12 +204,11 @@ const guardarProducto = async () => {
     return alert("Por favor, completa el nombre y sube una imagen.");
   }
 
-  // Preparamos el objeto EXACTO para el backend
   const productoFinal = {
     nombre: String(nuevo.value.nombre).trim(),
-    precio: Number(nuevo.value.precio), // Convertimos a número para evitar 400
+    precio: Number(nuevo.value.precio),
     categoria: nuevo.value.categoria,
-    imagenUrl: nuevo.value.imagenUrl // El backend usará este campo
+    imagenUrl: nuevo.value.imagenUrl
   };
 
   isUploading.value = true;
@@ -184,11 +222,10 @@ const guardarProducto = async () => {
     
     alert("¡Producto publicado con éxito!");
     cancelarEdicion();
-    await obtener(); // Refrescamos la lista
+    await obtener();
   } catch (error) {
     console.error("Error detallado:", error.response?.data);
-    const mensajeError = error.response?.data?.message || "Error de conexión";
-    alert(`Servidor dice: ${mensajeError}`);
+    alert("Error al guardar producto.");
   } finally {
     isUploading.value = false;
   }
@@ -222,7 +259,6 @@ const logout = () => {
 };
 
 const handleImgError = (e) => { 
-  // Ocultamos imágenes rotas para limpiar la consola y la interfaz
   e.target.style.display = 'none'; 
 };
 
@@ -245,66 +281,45 @@ onMounted(obtener);
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 .form-group label { font-weight: 600; color: #64748b; font-size: 0.9rem; }
 
-.custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; font-size: 1rem; outline: none; transition: 0.3s; }
+.custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; font-size: 1rem; outline: none; transition: 0.3s; box-sizing: border-box; }
 .custom-input:focus { border-color: #004d4d; }
 .url-readonly { background: #f8fafc; color: #94a3b8; font-size: 0.8rem; cursor: not-allowed; }
 
-/* NUEVA DROP ZONE ESTILO ARCHIVO */
+/* CONFIG CARD EXTRA */
+.config-card { border-top: 5px solid #2ecc71; }
+.helper-text { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
+.btn-save-config { 
+  background: #2ecc71; 
+  color: white; 
+  border: none; 
+  padding: 16px 30px; 
+  border-radius: 14px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  transition: 0.3s;
+  width: 100%;
+}
+.btn-save-config:hover { background: #27ae60; transform: translateY(-2px); }
+
+/* DROP ZONE */
 .st-drop-zone {
-border: 2px dashed #cbd5e0;
-border-radius: 20px;
-padding: 40px;
-text-align: center;
-  background: #f0f7ff; /* Azul suave tipo archivo */
-transition: all 0.3s ease;
-position: relative;
-min-height: 200px;
-display: flex;
-align-items: center;
-justify-content: center;
+  border: 2px dashed #cbd5e0;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  background: #f0f7ff;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.drop-active {
-border-color: #004d4d;
-background: #e6fffa;
-transform: scale(1.02);
-}
-
+.drop-active { border-color: #004d4d; background: #e6fffa; transform: scale(1.01); }
 .icon-box { font-size: 3rem; margin-bottom: 10px; }
-
-.st-btn-search {
-background: #004d4d;
-color: white;
-border: none;
-padding: 12px 24px;
-border-radius: 50px;
-font-weight: 700;
-cursor: pointer;
-margin-bottom: 10px;
-box-shadow: 0 4px 12px rgba(0, 77, 77, 0.2);
-transition: 0.3s;
-}
-
-.st-btn-search:hover {
-background: #006666;
-transform: translateY(-2px);
-}
-
-.drop-text { color: #64748b; font-size: 0.9rem; }
-
-.upload-status { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.spinner { width: 30px; height: 30px; border: 4px solid #f3f3f3; border-top: 4px solid #004d4d; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-.btn-remove-img { color: #ef4444; border: none; background: #fee2e2; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
-
-/* BOTONES ACCIÓN */
-.form-actions { display: flex; gap: 15px; margin-top: 30px; }
-.btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 18px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-.btn-publish:hover:not(:disabled) { background: #003333; }
-.btn-publish:disabled { background: #cbd5e0; cursor: not-allowed; }
-.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; }
+.st-btn-search { background: #004d4d; color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; }
+.btn-remove-img { color: #ef4444; border: none; background: #fee2e2; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
 
 /* TABLA */
 .table-responsive { overflow-x: auto; }
@@ -314,13 +329,10 @@ transform: translateY(-2px);
 .product-price { font-weight: 800; color: #2ecc71; }
 .badge { background: #e6fffa; color: #004d4d; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
 .actions-cell { display: flex; gap: 10px; }
-.btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 10px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-.btn-edit:hover { background: #e2e8f0; }
-.btn-delete:hover { background: #fee2e2; }
+.btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 10px; border-radius: 10px; cursor: pointer; }
 
 @media (max-width: 768px) {
-.admin-form-grid { grid-template-columns: 1fr; }
-.full-width { grid-column: span 1; }
-.st-drop-zone { padding: 20px; }
+  .admin-form-grid { grid-template-columns: 1fr; }
+  .full-width { grid-column: span 1; }
 }
 </style>
