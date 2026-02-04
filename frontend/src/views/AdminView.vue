@@ -115,6 +115,7 @@ const editandoId = ref(null);
 const nuevo = ref({ nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' });
 const fileInput = ref(null);
 
+// URL Base de tu API en Render
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
 
 // --- CONFIGURACIÓN CLOUDINARY ---
@@ -122,101 +123,107 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
-try {
+  try {
     const res = await axios.get(API_URL);
-    productos.value = res.data;
-} catch (e) { console.error("Error al obtener productos", e); }
+    // Verificamos que la respuesta sea un array antes de asignar
+    productos.value = Array.isArray(res.data) ? res.data : [];
+  } catch (e) { 
+    console.error("Error al obtener productos:", e.response?.status, e.message); 
+  }
 };
 
 const handleDrop = (e) => {
-isDragging.value = false;
-const file = e.dataTransfer.files[0];
-if (file) subirImagen(file);
+  isDragging.value = false;
+  const file = e.dataTransfer.files[0];
+  if (file) subirImagen(file);
 };
 
 const handleFileSelect = (e) => {
-const file = e.target.files[0];
-if (file) subirImagen(file);
+  const file = e.target.files[0];
+  if (file) subirImagen(file);
 };
 
 const subirImagen = async (file) => {
-isUploading.value = true;
-const formData = new FormData();
-formData.append('file', file);
-formData.append('upload_preset', UPLOAD_PRESET);
+  isUploading.value = true;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
 
-try {
+  try {
     const res = await axios.post(CLOUDINARY_URL, formData);
     nuevo.value.imagenUrl = res.data.secure_url;
-} catch (err) {
+  } catch (err) {
     console.error("Error Cloudinary:", err);
-    alert("¡Atención! Cloudinary rechazó la imagen. Asegúrate de que el 'Upload Preset' llamado 'taller-smith' sea de tipo 'Unsigned' en la configuración de Cloudinary.");
-} finally {
+    alert("Error al subir la imagen. Verifica que el preset sea 'Unsigned'.");
+  } finally {
     isUploading.value = false;
-}
+  }
 };
 
 const guardarProducto = async () => {
-if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
+  if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
     return alert("Por favor, completa el nombre y sube una imagen.");
-}
+  }
 
-  // Creamos el objeto con AMBOS posibles nombres de campo
-const productoFinal = {
+  // Preparamos el objeto EXACTO para el backend
+  const productoFinal = {
     nombre: String(nuevo.value.nombre).trim(),
-    precio: Number(nuevo.value.precio),
+    precio: Number(nuevo.value.precio), // Convertimos a número para evitar 400
     categoria: nuevo.value.categoria,
-    imagenUrl: nuevo.value.imagenUrl, // Como lo tenemos en el front
-    imagen: nuevo.value.imagenUrl     // Como posiblemente lo espera el back
-};
+    imagenUrl: nuevo.value.imagenUrl // El backend usará este campo
+  };
 
-isUploading.value = true;
+  isUploading.value = true;
 
-try {
+  try {
     if (editandoId.value) {
-    await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
+      await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
     } else {
-    await axios.post(API_URL, productoFinal);
+      await axios.post(API_URL, productoFinal);
     }
     
     alert("¡Producto publicado con éxito!");
     cancelarEdicion();
-    obtener();
-} catch (error) {
-    console.error("DETALLE DEL ERROR 400:", error.response?.data);
-    const mensajeError = error.response?.data?.message || "Error en el formato de datos";
-    alert(`Error del Servidor: ${mensajeError}`);
-} finally {
+    await obtener(); // Refrescamos la lista
+  } catch (error) {
+    console.error("Error detallado:", error.response?.data);
+    const mensajeError = error.response?.data?.message || "Error de conexión";
+    alert(`Servidor dice: ${mensajeError}`);
+  } finally {
     isUploading.value = false;
-}
+  }
 };
 
 const cargarEdicion = (p) => {
-editandoId.value = p._id;
-nuevo.value = { ...p };
-window.scrollTo({ top: 0, behavior: 'smooth' });
+  editandoId.value = p._id;
+  nuevo.value = { ...p };
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const cancelarEdicion = () => {
-editandoId.value = null;
-nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
+  editandoId.value = null;
+  nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
 };
 
 const eliminar = async (id) => {
-if(confirm("¿Eliminar este producto definitivamente?")) {
-    await axios.delete(`${API_URL}/${id}`);
-    obtener();
-}
+  if(confirm("¿Eliminar este producto definitivamente?")) {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      obtener();
+    } catch (e) {
+      alert("No se pudo eliminar el producto.");
+    }
+  }
 };
 
 const logout = () => {
-localStorage.removeItem('isLogged');
-router.push('/login');
+  localStorage.removeItem('isLogged');
+  router.push('/login');
 };
 
 const handleImgError = (e) => { 
-  // Al dejarlo vacío, evitamos que intente cargar el placeholder que falla
-  e.target.style.display = 'none'; // Oculta la imagen si falla
+  // Ocultamos imágenes rotas para limpiar la consola y la interfaz
+  e.target.style.display = 'none'; 
 };
 
 onMounted(obtener);
