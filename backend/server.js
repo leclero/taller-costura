@@ -7,7 +7,7 @@ const app = express();
 
 // Importar Rutas
 const prendaRoutes = require('./routes/prendaRoutes');
-
+const authRoutes = require('./routes/authRoutes');
 // 1. Middlewares (ORDEN CRÍTICO)
 app.use(cors());
 app.use(express.json());
@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // 3. Rutas
 app.use('/api/prendas', prendaRoutes);
-
+app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => res.send("API Funcionando 🪡"));
 
 // --- PUERTO ---
