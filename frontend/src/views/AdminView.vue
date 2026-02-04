@@ -1,6 +1,10 @@
 <template>
   <div class="admin-page-wrapper">
     <div class="admin-container">
+      <div class="top-admin-nav">
+        <button @click="logout" class="btn-logout">Cerrar Sesión 🔒</button>
+      </div>
+      
       <h1 class="admin-title">Panel de Control - Smith Teilor</h1>
 
       <div class="admin-card">
@@ -93,8 +97,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
+const router = useRouter();
 const productos = ref([]);
 const isDragging = ref(false);
 const editandoId = ref(null);
@@ -156,13 +162,17 @@ const eliminar = async (id) => {
   }
 };
 
+const logout = () => {
+  localStorage.removeItem('isLogged');
+  router.push('/login');
+};
+
 const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/50x50?text=Error'; };
 
 onMounted(obtener);
 </script>
 
 <style scoped>
-/* Contenedor Principal */
 .admin-page-wrapper {
   padding-top: 120px;
   min-height: 100vh;
@@ -171,6 +181,29 @@ onMounted(obtener);
 }
 
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+.top-admin-nav {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.btn-logout {
+  background: white;
+  border: 2px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-logout:hover {
+  background: #ff4d4d;
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);
+}
 
 .admin-title { 
   color: #004d4d; 
@@ -190,7 +223,6 @@ onMounted(obtener);
 
 .card-subtitle { color: #333; margin-bottom: 25px; font-size: 1.3rem; }
 
-/* Formulario */
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 .full-width { grid-column: span 2; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
@@ -204,7 +236,7 @@ label { font-weight: 700; font-size: 0.9rem; color: #444; }
   border: 2px solid #edf2f2;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-sizing: border-box; /* Crucial para que el padding no rompa el ancho */
+  box-sizing: border-box;
 }
 
 .custom-input:focus, .custom-select:focus {
@@ -214,7 +246,6 @@ label { font-weight: 700; font-size: 0.9rem; color: #444; }
   box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
 }
 
-/* Drag & Drop */
 .drop-zone {
   border: 2px dashed #cbd5e0;
   border-radius: 16px;
@@ -230,13 +261,11 @@ label { font-weight: 700; font-size: 0.9rem; color: #444; }
 .drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 .btn-remove-img { display: block; margin: 0 auto; background: #eee; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
 
-/* Botones */
 .form-actions { display: flex; gap: 15px; margin-top: 30px; }
 .btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
 .btn-publish:hover { background: #003333; transform: translateY(-2px); }
 .btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; }
 
-/* Tabla */
 .table-responsive { overflow-x: auto; }
 .products-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
 .products-table th { padding: 15px; color: #718096; font-weight: 700; text-align: left; }
@@ -263,5 +292,6 @@ label { font-weight: 700; font-size: 0.9rem; color: #444; }
 @media (max-width: 768px) {
   .admin-form-grid { grid-template-columns: 1fr; }
   .full-width { grid-column: span 1; }
+  .top-admin-nav { justify-content: center; }
 }
 </style>
