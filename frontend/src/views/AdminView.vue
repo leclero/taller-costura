@@ -201,18 +201,19 @@ const crearEmpleado = async () => {
 if(!nuevoEmpleado.value.user || !nuevoEmpleado.value.pass) return alert("Faltan datos");
 
 try {
-    // Cambiamos /register-db por /create-initial que es la que tienes en el backend
-    await axios.post(`${AUTH_URL}/create-initial`, {
-        username: nuevoEmpleado.value.user, // Tu backend usa 'username'
-        password: nuevoEmpleado.value.pass, // Tu backend usa 'password'
+    const res = await axios.post(`${AUTH_URL}/create-initial`, {
+        username: nuevoEmpleado.value.user.trim(), // Limpiamos espacios
+        password: nuevoEmpleado.value.pass,
         rol: nuevoEmpleado.value.rol
     });
     
     alert("¡Usuario creado con éxito!");
     nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
 } catch (e) { 
-    console.error("Error al crear:", e.response?.data || e.message);
-    alert("Error: El usuario ya existe o hubo un problema en el servidor."); 
+    // Esto nos dirá exactamente qué dice el backend (ej: "El usuario ya existe")
+    const mensajeError = e.response?.data?.error || e.response?.data?.message || "Error desconocido";
+    console.error("Detalle del error:", e.response?.data);
+    alert("Servidor dice: " + mensajeError); 
 }
 };
 
