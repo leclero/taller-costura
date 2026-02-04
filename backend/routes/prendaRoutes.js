@@ -3,76 +3,49 @@ const router = express.Router();
 const Prenda = require('../models/Prenda');
 const upload = require('../utils/cloudinary');
 
-// --- CREAR PRENDA (POST) ---
+// --- CREAR (POST) ---
 router.post('/', upload.single('imagen'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: "Falta la imagen" });
-
         const nuevaPrenda = new Prenda({
             nombre: req.body.nombre,
             precio: req.body.precio,
-            categoria: req.body.categoria || req.body.tipo,
+            categoria: req.body.categoria,
             imagenUrl: req.file.path,
             formato: req.file.mimetype.startsWith('video') ? 'video' : 'imagen'
         });
-
-        const prendaGuardada = await nuevaPrenda.save();
-        console.log("✅ Prenda guardada con éxito");
-        res.status(201).json(prendaGuardada);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+        await nuevaPrenda.save();
+        res.status(201).json(nuevaPrenda);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// --- OBTENER TODAS (GET) ---
+// --- LEER TODAS (GET) ---
 router.get('/', async (req, res) => {
     try {
         const prendas = await Prenda.find().sort({ createdAt: -1 });
         res.json(prendas);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// --- MODIFICAR PRENDA (PUT) ---
+// --- EDITAR (PUT) ---
 router.put('/:id', upload.single('imagen'), async (req, res) => {
     try {
-        const { nombre, precio, categoria } = req.body;
-        let datosActualizados = { nombre, precio, categoria };
-
-        // Si el usuario subió una foto nueva en la edición
+        let updateData = { ...req.body };
         if (req.file) {
-            datosActualizados.imagenUrl = req.file.path;
-            datosActualizados.formato = req.file.mimetype.startsWith('video') ? 'video' : 'imagen';
+            updateData.imagenUrl = req.file.path;
+            updateData.formato = req.file.mimetype.startsWith('video') ? 'video' : 'imagen';
         }
-
-        const prendaEditada = await Prenda.findByIdAndUpdate(
-            req.params.id,
-            datosActualizados,
-            { new: true } // Para que devuelva el objeto ya cambiado
-        );
-
-        if (!prendaEditada) return res.status(404).json({ message: "No se encontró la prenda" });
-        
-        console.log("✅ Prenda editada con éxito");
-        res.json(prendaEditada);
-    } catch (err) {
-        console.error("❌ Error al editar:", err.message);
-        res.status(500).json({ message: err.message });
-    }
+        const actualizada = await Prenda.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        res.json(actualizada);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// --- ELIMINAR PRENDA (DELETE) ---
+// --- ELIMINAR (DELETE) ---
 router.delete('/:id', async (req, res) => {
     try {
-        const prendaEliminada = await Prenda.findByIdAndDelete(req.params.id);
-        if (!prendaEliminada) return res.status(404).json({ message: "No se encontró la prenda" });
-        
-        console.log("🗑️ Prenda eliminada con éxito");
-        res.json({ message: "Prenda eliminada correctamente" });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+        await Prenda.findByIdAndDelete(req.params.id);
+        res.json({ message: "Eliminado" });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;
