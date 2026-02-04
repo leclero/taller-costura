@@ -33,28 +33,32 @@
           <div class="form-group full-width">
             <label>Imagen del Producto</label>
             <div 
-              class="drop-zone" 
+              class="st-drop-zone" 
               :class="{ 'drop-active': isDragging, 'is-loading': isUploading }"
               @dragover.prevent="isDragging = true"
               @dragleave.prevent="isDragging = false"
               @drop.prevent="handleDrop"
             >
               <div v-if="isUploading" class="upload-status">
-                <p>⏳ Subiendo imagen a Cloudinary...</p>
+                <div class="spinner"></div>
+                <p>Subiendo imagen a Cloudinary...</p>
               </div>
-              <div v-else-if="!nuevo.imagenUrl">
-                <p>Arrastra una foto aquí o</p>
-                <label class="btn-search-file">
+
+              <div v-else-if="!nuevo.imagenUrl" class="drop-placeholder">
+                <div class="icon-box">📂</div>
+                <button type="button" class="st-btn-search" @click="$refs.fileInput.click()">
                   Buscar en mi PC
-                  <input type="file" @change="handleFileSelect" hidden accept="image/*" />
-                </label>
+                </button>
+                <p class="drop-text">o arrastra tu archivo aquí</p>
+                <input type="file" ref="fileInput" @change="handleFileSelect" hidden accept="image/*" />
               </div>
+
               <div v-else class="preview-container">
                 <img :src="nuevo.imagenUrl" class="drop-preview" />
-                <button @click="nuevo.imagenUrl = ''" class="btn-remove-img">Cambiar imagen</button>
+                <button @click="nuevo.imagenUrl = ''" class="btn-remove-img">🗑️ Quitar y cambiar imagen</button>
               </div>
             </div>
-            <input v-model="nuevo.imagenUrl" placeholder="URL de Cloudinary (se genera sola al subir)" class="custom-input mt-10" readonly />
+            <input v-model="nuevo.imagenUrl" placeholder="La URL se generará automáticamente" class="custom-input mt-10 url-readonly" readonly />
           </div>
         </div>
 
@@ -109,13 +113,12 @@ const isDragging = ref(false);
 const isUploading = ref(false);
 const editandoId = ref(null);
 const nuevo = ref({ nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' });
+const fileInput = ref(null);
 
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
 
 // --- CONFIGURACIÓN CLOUDINARY ---
-// Reemplaza 'tu_cloud_name' por tu Cloud Name de Cloudinary
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
-// Reemplaza 'tu_preset' por tu Upload Preset (debe ser Unsigned)
 const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
@@ -147,7 +150,7 @@ const subirImagen = async (file) => {
     nuevo.value.imagenUrl = res.data.secure_url;
   } catch (err) {
     console.error("Error Cloudinary:", err);
-    alert("Error al subir la imagen. Revisa tu cloud_name y preset.");
+    alert("¡Atención! Cloudinary rechazó la imagen. Asegúrate de que el 'Upload Preset' llamado 'taller-smith' sea de tipo 'Unsigned' en la configuración de Cloudinary.");
   } finally {
     isUploading.value = false;
   }
@@ -155,16 +158,21 @@ const subirImagen = async (file) => {
 
 const guardarProducto = async () => {
   if(!nuevo.value.nombre || !nuevo.value.imagenUrl) return alert("Completa los campos");
-  try {
+  // Aseguramos que el precio sea un número real
+  const productoAEnviar = {
+    ...nuevo.value,
+    precio: Number(nuevo.value.precio) 
+  };
+try {
     if (editandoId.value) {
-      await axios.put(`${API_URL}/${editandoId.value}`, nuevo.value);
+      await axios.put(`${API_URL}/${editandoId.value}`, productoAEnviar);
     } else {
-      await axios.post(API_URL, nuevo.value);
+      await axios.post(API_URL, productoAEnviar);
     }
     cancelarEdicion();
     obtener();
-    alert("¡Éxito!");
-  } catch (error) { alert("Error al conectar con Render/Mongo"); }
+    alert("¡Guardado correctamente!");
+  } catch (error) { alert("Error al conectar con el servidor"); }
 };
 
 const cargarEdicion = (p) => {
@@ -179,7 +187,7 @@ const cancelarEdicion = () => {
 };
 
 const eliminar = async (id) => {
-  if(confirm("¿Eliminar este producto?")) {
+  if(confirm("¿Eliminar este producto definitivamente?")) {
     await axios.delete(`${API_URL}/${id}`);
     obtener();
   }
@@ -196,38 +204,97 @@ onMounted(obtener);
 </script>
 
 <style scoped>
-.admin-page-wrapper { padding: 120px 0 80px; min-height: 100vh; background-color: #f4f7f7; font-family: sans-serif; }
+.admin-page-wrapper { padding: 120px 0 80px; min-height: 100vh; background-color: #f4f7f7; font-family: 'Inter', sans-serif; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 .top-admin-nav { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-.btn-logout { background: white; border: 2px solid #ff4d4d; color: #ff4d4d; padding: 8px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-.admin-title { color: #004d4d; font-size: 2.2rem; text-align: center; margin-bottom: 40px; }
+.btn-logout { background: white; border: 2px solid #ff4d4d; color: #ff4d4d; padding: 8px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+.btn-logout:hover { background: #ff4d4d; color: white; }
+
+.admin-title { color: #004d4d; font-size: 2.2rem; text-align: center; margin-bottom: 40px; font-weight: 800; }
 .admin-card { background: white; border-radius: 24px; padding: 35px; box-shadow: 0 12px 40px rgba(0,0,0,0.06); margin-bottom: 40px; }
+.card-subtitle { margin-bottom: 25px; color: #334155; font-size: 1.3rem; }
+
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 .full-width { grid-column: span 2; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-.custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; }
-.drop-zone { border: 2px dashed #cbd5e0; border-radius: 16px; padding: 40px; text-align: center; background: #f8fafc; transition: 0.3s; }
-.drop-active { border-color: #004d4d; background: #e6fffa; }
-.is-loading { opacity: 0.6; pointer-events: none; }
-.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 10px; }
-.btn-remove-img { display: block; margin: 0 auto; color: #ff4d4d; border: none; background: none; cursor: pointer; }
+.form-group label { font-weight: 600; color: #64748b; font-size: 0.9rem; }
+
+.custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; font-size: 1rem; outline: none; transition: 0.3s; }
+.custom-input:focus { border-color: #004d4d; }
+.url-readonly { background: #f8fafc; color: #94a3b8; font-size: 0.8rem; cursor: not-allowed; }
+
+/* NUEVA DROP ZONE ESTILO ARCHIVO */
+.st-drop-zone {
+  border: 2px dashed #cbd5e0;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  background: #f0f7ff; /* Azul suave tipo archivo */
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-active {
+  border-color: #004d4d;
+  background: #e6fffa;
+  transform: scale(1.02);
+}
+
+.icon-box { font-size: 3rem; margin-bottom: 10px; }
+
+.st-btn-search {
+  background: #004d4d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(0, 77, 77, 0.2);
+  transition: 0.3s;
+}
+
+.st-btn-search:hover {
+  background: #006666;
+  transform: translateY(-2px);
+}
+
+.drop-text { color: #64748b; font-size: 0.9rem; }
+
+.upload-status { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.spinner { width: 30px; height: 30px; border: 4px solid #f3f3f3; border-top: 4px solid #004d4d; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.btn-remove-img { color: #ef4444; border: none; background: #fee2e2; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+
+/* BOTONES ACCIÓN */
 .form-actions { display: flex; gap: 15px; margin-top: 30px; }
-.btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; }
-.btn-publish:disabled { background: #ccc; }
-.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; cursor: pointer; }
+.btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 18px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+.btn-publish:hover:not(:disabled) { background: #003333; }
+.btn-publish:disabled { background: #cbd5e0; cursor: not-allowed; }
+.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; }
+
+/* TABLA */
 .table-responsive { overflow-x: auto; }
 .products-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
 .product-row td { padding: 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
 .img-preview { width: 55px; height: 55px; object-fit: cover; border-radius: 10px; }
-.product-price { font-weight: 800; color: #25d366; }
-.badge { background: #e6fffa; color: #004d4d; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; }
+.product-price { font-weight: 800; color: #2ecc71; }
+.badge { background: #e6fffa; color: #004d4d; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
 .actions-cell { display: flex; gap: 10px; }
-.btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 8px; border-radius: 8px; cursor: pointer; }
-.mt-10 { margin-top: 10px; }
+.btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 10px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+.btn-edit:hover { background: #e2e8f0; }
+.btn-delete:hover { background: #fee2e2; }
 
 @media (max-width: 768px) {
   .admin-form-grid { grid-template-columns: 1fr; }
   .full-width { grid-column: span 1; }
-  .product-row td { display: flex; justify-content: space-between; align-items: center; }
+  .st-drop-zone { padding: 20px; }
 }
 </style>
