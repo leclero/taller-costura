@@ -157,39 +157,38 @@ try {
 };
 
 const guardarProducto = async () => {
-  // 1. Validaciones básicas
-  if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
+if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
     return alert("Por favor, completa el nombre y sube una imagen.");
-  }
+}
 
-  // 2. Creamos el objeto EXACTO que espera el backend
-  const productoFinal = {
+  // Creamos el objeto con AMBOS posibles nombres de campo
+const productoFinal = {
     nombre: String(nuevo.value.nombre).trim(),
-    precio: Number(nuevo.value.precio), // Convertimos a número sí o sí
+    precio: Number(nuevo.value.precio),
     categoria: nuevo.value.categoria,
-    imagenUrl: nuevo.value.imagenUrl
-  };
+    imagenUrl: nuevo.value.imagenUrl, // Como lo tenemos en el front
+    imagen: nuevo.value.imagenUrl     // Como posiblemente lo espera el back
+};
 
-  isUploading.value = true; // Bloqueamos el botón para evitar doble clic
+isUploading.value = true;
 
-  try {
+try {
     if (editandoId.value) {
-      await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
+    await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
     } else {
-      await axios.post(API_URL, productoFinal);
+    await axios.post(API_URL, productoFinal);
     }
     
     alert("¡Producto publicado con éxito!");
     cancelarEdicion();
-    obtener(); // Recargamos la lista
-  } catch (error) {
+    obtener();
+} catch (error) {
     console.error("DETALLE DEL ERROR 400:", error.response?.data);
-    // Si el backend envía un mensaje de por qué falló, lo mostramos
     const mensajeError = error.response?.data?.message || "Error en el formato de datos";
-    alert(`Error 400: ${mensajeError}`);
-  } finally {
+    alert(`Error del Servidor: ${mensajeError}`);
+} finally {
     isUploading.value = false;
-  }
+}
 };
 
 const cargarEdicion = (p) => {
