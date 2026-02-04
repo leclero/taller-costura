@@ -157,28 +157,39 @@ try {
 };
 
 const guardarProducto = async () => {
-if(!nuevo.value.nombre || !nuevo.value.imagenUrl) return alert("Completa los campos");
+  // 1. Validaciones básicas
+  if(!nuevo.value.nombre || !nuevo.value.imagenUrl) {
+    return alert("Por favor, completa el nombre y sube una imagen.");
+  }
 
-  // Creamos una copia limpia para enviar
-const productoData = {
-    nombre: nuevo.value.nombre,
-    precio: Number(nuevo.value.precio), // Forzamos a que sea un número
+  // 2. Creamos el objeto EXACTO que espera el backend
+  const productoFinal = {
+    nombre: String(nuevo.value.nombre).trim(),
+    precio: Number(nuevo.value.precio), // Convertimos a número sí o sí
     categoria: nuevo.value.categoria,
     imagenUrl: nuevo.value.imagenUrl
-};
-try {
+  };
+
+  isUploading.value = true; // Bloqueamos el botón para evitar doble clic
+
+  try {
     if (editandoId.value) {
-    await axios.put(`${API_URL}/${editandoId.value}`, productoData);
+      await axios.put(`${API_URL}/${editandoId.value}`, productoFinal);
     } else {
-    await axios.post(API_URL, productoData);
+      await axios.post(API_URL, productoFinal);
     }
+    
+    alert("¡Producto publicado con éxito!");
     cancelarEdicion();
-    obtener();
-    alert("¡Éxito al publicar!");
-} catch (error) {
-    console.error("Error detallado:", error.response?.data); // Esto te dirá EXACTAMENTE qué campo falla
-    alert("Error al conectar con el servidor. Revisa la consola.");
-}
+    obtener(); // Recargamos la lista
+  } catch (error) {
+    console.error("DETALLE DEL ERROR 400:", error.response?.data);
+    // Si el backend envía un mensaje de por qué falló, lo mostramos
+    const mensajeError = error.response?.data?.message || "Error en el formato de datos";
+    alert(`Error 400: ${mensajeError}`);
+  } finally {
+    isUploading.value = false;
+  }
 };
 
 const cargarEdicion = (p) => {
@@ -204,7 +215,10 @@ localStorage.removeItem('isLogged');
 router.push('/login');
 };
 
-const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/55x55?text=Error'; };
+const handleImgError = (e) => { 
+  // Al dejarlo vacío, evitamos que intente cargar el placeholder que falla
+  e.target.style.display = 'none'; // Oculta la imagen si falla
+};
 
 onMounted(obtener);
 </script>
