@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page-wrapper">
+<div class="admin-page-wrapper">
     <div class="admin-container">
       <div class="top-admin-nav">
         <button @click="logout" class="btn-logout">Cerrar Sesión 🔒</button>
@@ -99,7 +99,7 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup>
@@ -122,80 +122,86 @@ const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
-  try {
+try {
     const res = await axios.get(API_URL);
     productos.value = res.data;
-  } catch (e) { console.error("Error al obtener productos", e); }
+} catch (e) { console.error("Error al obtener productos", e); }
 };
 
 const handleDrop = (e) => {
-  isDragging.value = false;
-  const file = e.dataTransfer.files[0];
-  if (file) subirImagen(file);
+isDragging.value = false;
+const file = e.dataTransfer.files[0];
+if (file) subirImagen(file);
 };
 
 const handleFileSelect = (e) => {
-  const file = e.target.files[0];
-  if (file) subirImagen(file);
+const file = e.target.files[0];
+if (file) subirImagen(file);
 };
 
 const subirImagen = async (file) => {
-  isUploading.value = true;
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', UPLOAD_PRESET);
+isUploading.value = true;
+const formData = new FormData();
+formData.append('file', file);
+formData.append('upload_preset', UPLOAD_PRESET);
 
-  try {
+try {
     const res = await axios.post(CLOUDINARY_URL, formData);
     nuevo.value.imagenUrl = res.data.secure_url;
-  } catch (err) {
+} catch (err) {
     console.error("Error Cloudinary:", err);
     alert("¡Atención! Cloudinary rechazó la imagen. Asegúrate de que el 'Upload Preset' llamado 'taller-smith' sea de tipo 'Unsigned' en la configuración de Cloudinary.");
-  } finally {
+} finally {
     isUploading.value = false;
-  }
+}
 };
 
 const guardarProducto = async () => {
-  if(!nuevo.value.nombre || !nuevo.value.imagenUrl) return alert("Completa los campos");
-  // Aseguramos que el precio sea un número real
-  const productoAEnviar = {
-    ...nuevo.value,
-    precio: Number(nuevo.value.precio) 
-  };
+if(!nuevo.value.nombre || !nuevo.value.imagenUrl) return alert("Completa los campos");
+
+  // Creamos una copia limpia para enviar
+const productoData = {
+    nombre: nuevo.value.nombre,
+    precio: Number(nuevo.value.precio), // Forzamos a que sea un número
+    categoria: nuevo.value.categoria,
+    imagenUrl: nuevo.value.imagenUrl
+};
 try {
     if (editandoId.value) {
-      await axios.put(`${API_URL}/${editandoId.value}`, productoAEnviar);
+    await axios.put(`${API_URL}/${editandoId.value}`, productoData);
     } else {
-      await axios.post(API_URL, productoAEnviar);
+    await axios.post(API_URL, productoData);
     }
     cancelarEdicion();
     obtener();
-    alert("¡Guardado correctamente!");
-  } catch (error) { alert("Error al conectar con el servidor"); }
+    alert("¡Éxito al publicar!");
+} catch (error) {
+    console.error("Error detallado:", error.response?.data); // Esto te dirá EXACTAMENTE qué campo falla
+    alert("Error al conectar con el servidor. Revisa la consola.");
+}
 };
 
 const cargarEdicion = (p) => {
-  editandoId.value = p._id;
-  nuevo.value = { ...p };
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+editandoId.value = p._id;
+nuevo.value = { ...p };
+window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const cancelarEdicion = () => {
-  editandoId.value = null;
-  nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
+editandoId.value = null;
+nuevo.value = { nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' };
 };
 
 const eliminar = async (id) => {
-  if(confirm("¿Eliminar este producto definitivamente?")) {
+if(confirm("¿Eliminar este producto definitivamente?")) {
     await axios.delete(`${API_URL}/${id}`);
     obtener();
-  }
+}
 };
 
 const logout = () => {
-  localStorage.removeItem('isLogged');
-  router.push('/login');
+localStorage.removeItem('isLogged');
+router.push('/login');
 };
 
 const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/55x55?text=Error'; };
@@ -225,43 +231,43 @@ onMounted(obtener);
 
 /* NUEVA DROP ZONE ESTILO ARCHIVO */
 .st-drop-zone {
-  border: 2px dashed #cbd5e0;
-  border-radius: 20px;
-  padding: 40px;
-  text-align: center;
+border: 2px dashed #cbd5e0;
+border-radius: 20px;
+padding: 40px;
+text-align: center;
   background: #f0f7ff; /* Azul suave tipo archivo */
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+transition: all 0.3s ease;
+position: relative;
+min-height: 200px;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
 .drop-active {
-  border-color: #004d4d;
-  background: #e6fffa;
-  transform: scale(1.02);
+border-color: #004d4d;
+background: #e6fffa;
+transform: scale(1.02);
 }
 
 .icon-box { font-size: 3rem; margin-bottom: 10px; }
 
 .st-btn-search {
-  background: #004d4d;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 50px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 12px rgba(0, 77, 77, 0.2);
-  transition: 0.3s;
+background: #004d4d;
+color: white;
+border: none;
+padding: 12px 24px;
+border-radius: 50px;
+font-weight: 700;
+cursor: pointer;
+margin-bottom: 10px;
+box-shadow: 0 4px 12px rgba(0, 77, 77, 0.2);
+transition: 0.3s;
 }
 
 .st-btn-search:hover {
-  background: #006666;
-  transform: translateY(-2px);
+background: #006666;
+transform: translateY(-2px);
 }
 
 .drop-text { color: #64748b; font-size: 0.9rem; }
@@ -293,8 +299,8 @@ onMounted(obtener);
 .btn-delete:hover { background: #fee2e2; }
 
 @media (max-width: 768px) {
-  .admin-form-grid { grid-template-columns: 1fr; }
-  .full-width { grid-column: span 1; }
-  .st-drop-zone { padding: 20px; }
+.admin-form-grid { grid-template-columns: 1fr; }
+.full-width { grid-column: span 1; }
+.st-drop-zone { padding: 20px; }
 }
 </style>
