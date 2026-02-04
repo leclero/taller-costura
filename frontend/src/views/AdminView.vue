@@ -34,12 +34,15 @@
             <label>Imagen del Producto</label>
             <div 
               class="drop-zone" 
-              :class="{ 'drop-active': isDragging }"
+              :class="{ 'drop-active': isDragging, 'is-loading': isUploading }"
               @dragover.prevent="isDragging = true"
               @dragleave.prevent="isDragging = false"
               @drop.prevent="handleDrop"
             >
-              <div v-if="!nuevo.imagenUrl">
+              <div v-if="isUploading" class="upload-status">
+                <p>⏳ Subiendo imagen a Cloudinary...</p>
+              </div>
+              <div v-else-if="!nuevo.imagenUrl">
                 <p>Arrastra una foto aquí o</p>
                 <label class="btn-search-file">
                   Buscar en mi PC
@@ -51,12 +54,12 @@
                 <button @click="nuevo.imagenUrl = ''" class="btn-remove-img">Cambiar imagen</button>
               </div>
             </div>
-            <input v-model="nuevo.imagenUrl" placeholder="O pega la URL de la imagen aquí directamente" class="custom-input mt-10" />
+            <input v-model="nuevo.imagenUrl" placeholder="URL de Cloudinary (se genera sola al subir)" class="custom-input mt-10" readonly />
           </div>
         </div>
 
         <div class="form-actions">
-          <button @click="guardarProducto" class="btn-publish">
+          <button @click="guardarProducto" class="btn-publish" :disabled="isUploading">
             {{ editandoId ? 'Actualizar Producto' : 'Publicar Producto' }}
           </button>
           <button v-if="editandoId" @click="cancelarEdicion" class="btn-cancel">Cancelar</button>
@@ -78,10 +81,10 @@
             </thead>
             <tbody>
               <tr v-for="p in productos" :key="p._id" class="product-row">
-                <td><img :src="p.imagenUrl" class="img-preview" @error="handleImgError" /></td>
-                <td><span class="product-name">{{ p.nombre }}</span></td>
-                <td><span class="badge">{{ p.categoria }}</span></td>
-                <td><span class="product-price">${{ p.precio.toLocaleString() }}</span></td>
+                <td data-label="Imagen"><img :src="p.imagenUrl" class="img-preview" @error="handleImgError" /></td>
+                <td data-label="Nombre"><span class="product-name">{{ p.nombre }}</span></td>
+                <td data-label="Categoría"><span class="badge">{{ p.categoria }}</span></td>
+                <td data-label="Precio"><span class="product-price">${{ p.precio.toLocaleString() }}</span></td>
                 <td class="actions-cell">
                   <button @click="cargarEdicion(p)" class="btn-edit" title="Editar">✏️</button>
                   <button @click="eliminar(p._id)" class="btn-delete" title="Eliminar">🗑️</button>
@@ -103,9 +106,17 @@ import axios from 'axios';
 const router = useRouter();
 const productos = ref([]);
 const isDragging = ref(false);
+const isUploading = ref(false);
 const editandoId = ref(null);
 const nuevo = ref({ nombre: '', precio: 0, categoria: 'Confección', imagenUrl: '' });
+
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+
+// --- CONFIGURACIÓN CLOUDINARY ---
+// Reemplaza 'tu_cloud_name' por tu Cloud Name de Cloudinary
+const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
+// Reemplaza 'tu_preset' por tu Upload Preset (debe ser Unsigned)
+const UPLOAD_PRESET = 'taller-smith';
 
 const obtener = async () => {
   try {
@@ -117,18 +128,29 @@ const obtener = async () => {
 const handleDrop = (e) => {
   isDragging.value = false;
   const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
+  if (file) subirImagen(file);
 };
 
 const handleFileSelect = (e) => {
   const file = e.target.files[0];
-  if (file) processFile(file);
+  if (file) subirImagen(file);
 };
 
-const processFile = (file) => {
-  const reader = new FileReader();
-  reader.onload = (e) => { nuevo.value.imagenUrl = e.target.result; };
-  reader.readAsDataURL(file);
+const subirImagen = async (file) => {
+  isUploading.value = true;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+
+  try {
+    const res = await axios.post(CLOUDINARY_URL, formData);
+    nuevo.value.imagenUrl = res.data.secure_url;
+  } catch (err) {
+    console.error("Error Cloudinary:", err);
+    alert("Error al subir la imagen. Revisa tu cloud_name y preset.");
+  } finally {
+    isUploading.value = false;
+  }
 };
 
 const guardarProducto = async () => {
@@ -141,7 +163,8 @@ const guardarProducto = async () => {
     }
     cancelarEdicion();
     obtener();
-  } catch (error) { alert("Error al guardar"); }
+    alert("¡Éxito!");
+  } catch (error) { alert("Error al conectar con Render/Mongo"); }
 };
 
 const cargarEdicion = (p) => {
@@ -167,131 +190,44 @@ const logout = () => {
   router.push('/login');
 };
 
-const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/50x50?text=Error'; };
+const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/55x55?text=Error'; };
 
 onMounted(obtener);
 </script>
 
 <style scoped>
-.admin-page-wrapper {
-  padding-top: 120px;
-  min-height: 100vh;
-  background-color: #f4f7f7;
-  padding-bottom: 80px;
-}
-
+.admin-page-wrapper { padding: 120px 0 80px; min-height: 100vh; background-color: #f4f7f7; font-family: sans-serif; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-
-.top-admin-nav {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}
-
-.btn-logout {
-  background: white;
-  border: 2px solid #ff4d4d;
-  color: #ff4d4d;
-  padding: 8px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.btn-logout:hover {
-  background: #ff4d4d;
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);
-}
-
-.admin-title { 
-  color: #004d4d; 
-  font-size: 2.2rem; 
-  font-weight: 800; 
-  text-align: center; 
-  margin-bottom: 40px;
-}
-
-.admin-card {
-  background: white;
-  border-radius: 24px;
-  padding: 35px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.06);
-  margin-bottom: 40px;
-}
-
-.card-subtitle { color: #333; margin-bottom: 25px; font-size: 1.3rem; }
-
+.top-admin-nav { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+.btn-logout { background: white; border: 2px solid #ff4d4d; color: #ff4d4d; padding: 8px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+.admin-title { color: #004d4d; font-size: 2.2rem; text-align: center; margin-bottom: 40px; }
+.admin-card { background: white; border-radius: 24px; padding: 35px; box-shadow: 0 12px 40px rgba(0,0,0,0.06); margin-bottom: 40px; }
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 .full-width { grid-column: span 2; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-
-label { font-weight: 700; font-size: 0.9rem; color: #444; }
-
-.custom-input, .custom-select {
-  width: 100%;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 2px solid #edf2f2;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.custom-input:focus, .custom-select:focus {
-  border-color: #25d366;
-  background: #fff;
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
-}
-
-.drop-zone {
-  border: 2px dashed #cbd5e0;
-  border-radius: 16px;
-  padding: 40px;
-  text-align: center;
-  background: #f8fafc;
-  transition: 0.3s;
-  cursor: pointer;
-}
-.drop-active { border-color: #25d366; background: #f0fff4; }
-.btn-search-file { color: #004d4d; font-weight: 700; text-decoration: underline; cursor: pointer; }
-
-.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-.btn-remove-img { display: block; margin: 0 auto; background: #eee; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
-
+.custom-input, .custom-select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f2; }
+.drop-zone { border: 2px dashed #cbd5e0; border-radius: 16px; padding: 40px; text-align: center; background: #f8fafc; transition: 0.3s; }
+.drop-active { border-color: #004d4d; background: #e6fffa; }
+.is-loading { opacity: 0.6; pointer-events: none; }
+.drop-preview { max-height: 180px; border-radius: 12px; margin-bottom: 10px; }
+.btn-remove-img { display: block; margin: 0 auto; color: #ff4d4d; border: none; background: none; cursor: pointer; }
 .form-actions { display: flex; gap: 15px; margin-top: 30px; }
-.btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
-.btn-publish:hover { background: #003333; transform: translateY(-2px); }
-.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; }
-
+.btn-publish { flex: 2; background: #004d4d; color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+.btn-publish:disabled { background: #ccc; }
+.btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; border: none; border-radius: 14px; cursor: pointer; }
 .table-responsive { overflow-x: auto; }
 .products-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-.products-table th { padding: 15px; color: #718096; font-weight: 700; text-align: left; }
-
-.product-row { background: #fff; transition: 0.2s; }
-.product-row td { padding: 15px; vertical-align: middle; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-.product-row td:first-child { border-left: 1px solid #f1f5f9; border-radius: 15px 0 0 15px; }
-.product-row td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 15px 15px 0; }
-
-.img-preview { width: 55px; height: 55px; object-fit: cover; border-radius: 10px; border: 2px solid #eee; }
-.product-name { font-weight: 700; color: #2d3748; }
+.product-row td { padding: 15px; background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+.img-preview { width: 55px; height: 55px; object-fit: cover; border-radius: 10px; }
 .product-price { font-weight: 800; color: #25d366; }
-.badge { background: #e6fffa; color: #004d4d; padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
-
+.badge { background: #e6fffa; color: #004d4d; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; }
 .actions-cell { display: flex; gap: 10px; }
-.btn-edit, .btn-delete { border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-.btn-edit { background: #fffaf0; color: #dd6b20; border: 1px solid #feebc8; }
-.btn-edit:hover { background: #feebc8; }
-.btn-delete { background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; }
-.btn-delete:hover { background: #fed7d7; }
-
+.btn-edit, .btn-delete { border: none; background: #f1f5f9; padding: 8px; border-radius: 8px; cursor: pointer; }
 .mt-10 { margin-top: 10px; }
 
 @media (max-width: 768px) {
   .admin-form-grid { grid-template-columns: 1fr; }
   .full-width { grid-column: span 1; }
-  .top-admin-nav { justify-content: center; }
+  .product-row td { display: flex; justify-content: space-between; align-items: center; }
 }
 </style>

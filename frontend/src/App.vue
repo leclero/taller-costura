@@ -1,104 +1,83 @@
 <template>
-  <div id="app">
-    <nav class="navbar" :class="{ 'navbar-scrolled': scrolled || isAdminPage }">
-      <div class="nav-container">
-        <router-link to="/" class="nav-logo" @click="scrollTo('inicio')">
-          <img src="/Smith.jpg" alt="Logo" class="logo-img" @error="e => e.target.style.display='none'">
-          <span class="brand-name">Smith <span class="accent">Teilor</span></span>
-        </router-link>
+  <nav class="navbar" :class="{ 'navbar-solid': isScrolled || !isHome }">
+    <div class="nav-container">
+      <router-link to="/" class="nav-logo" @click="menuOpen = false">
+        <img src="/Smith.jpg" alt="Logo" class="logo-img">
+        <span class="logo-text">Smith <span class="accent">Teilor</span></span>
+      </router-link>
 
-        <div class="nav-links">
-          <template v-if="!isAdminPage">
-            <a href="#inicio" class="nav-item" @click.prevent="scrollTo('inicio')">Inicio</a>
-            <a href="#trabajos" class="nav-item" @click.prevent="scrollTo('trabajos')">Nuestro Trabajo</a>
-            <a href="#reparaciones" class="nav-item" @click.prevent="scrollTo('reparaciones')">Arreglos</a>
-            <a href="#tienda" class="nav-item" @click.prevent="scrollTo('tienda')">Tienda</a>
-          </template>
-          <template v-else>
-            <router-link to="/" class="nav-item">⬅ Volver al Inicio</router-link>
-          </template>
-          
-          <router-link to="/admin" class="btn-admin-nav">Panel Admin</router-link>
-        </div>
+      <button class="menu-toggle" @click="menuOpen = !menuOpen" aria-label="Abrir menú">
+        <div class="bar" :class="{ 'open': menuOpen }"></div>
+        <div class="bar" :class="{ 'open': menuOpen }"></div>
+        <div class="bar" :class="{ 'open': menuOpen }"></div>
+      </button>
+
+      <div class="nav-links" :class="{ 'nav-active': menuOpen }">
+        <router-link to="/" @click="menuOpen = false">Inicio</router-link>
+        <a href="#trabajos" @click="menuOpen = false">Nuestro Trabajo</a>
+        <a href="#arreglos" @click="menuOpen = false">Arreglos</a>
+        <router-link to="/admin" class="btn-admin" @click="menuOpen = false">Panel Admin</router-link>
       </div>
-    </nav>
+    </div>
+    <div v-if="menuOpen" class="nav-overlay" @click="menuOpen = false"></div>
+  </nav>
 
-    <router-view />
-
-    <footer class="main-footer">
-      <div class="footer-line"></div>
-      <p>&copy; 2026 <strong>Smith Teilor</strong> - Luján, Buenos Aires.</p>
-    </footer>
-  </div>
+  <router-view />
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const scrolled = ref(false);
-
-// Detecta si estamos en la ruta de administrador
-const isAdminPage = computed(() => route.path === '/admin');
+const isScrolled = ref(false);
+const menuOpen = ref(false);
+const isHome = computed(() => route.path === '/');
 
 const handleScroll = () => {
-  scrolled.value = window.scrollY > 50;
+  isScrolled.value = window.scrollY > 50;
 };
 
-const scrollTo = (id) => {
-  if (isAdminPage.value) return; // No hace scroll si no estamos en la home
-  const element = document.getElementById(id);
-  if (element) {
-    const offset = 90;
-    const bodyRect = document.body.getBoundingClientRect().top;
-    const elementRect = element.getBoundingClientRect().top;
-    const elementPosition = elementRect - bodyRect;
-    const offsetPosition = elementPosition - offset;
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
 
-    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-  }
-};
-
-onMounted(() => window.addEventListener('scroll', handleScroll));
-onUnmounted(() => window.removeEventListener('scroll', handleScroll));
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
-<style>
-body { margin: 0; font-family: 'Inter', sans-serif; background-color: #ffffff; color: #333; }
-
-.navbar { 
-  position: fixed; top: 0; width: 100%; height: 85px; z-index: 10000; 
-  display: flex; align-items: center; transition: all 0.4s ease; background: transparent; 
-}
-
-/* Navbar sólida en scroll o en Admin */
-.navbar-scrolled {
-  height: 75px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-}
-
-.nav-container { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-
+<style scoped>
+.navbar { position: fixed; top: 0; width: 100%; z-index: 1000; transition: 0.4s; padding: 15px 0; }
+.navbar-solid { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
 .nav-logo { display: flex; align-items: center; text-decoration: none; gap: 12px; }
-.logo-img { height: 48px; width: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #25d366; }
+.logo-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #004d4d; }
+.logo-text { font-weight: 800; font-size: 1.5rem; color: #004d4d; letter-spacing: -0.5px; }
+.accent { color: #2ecc71; }
+.nav-links { display: flex; align-items: center; gap: 30px; }
+.nav-links a { text-decoration: none; color: #004d4d; font-weight: 700; font-size: 0.95rem; transition: 0.3s; }
+.nav-links a:hover { color: #2ecc71; }
 
-.brand-name { font-size: 1.5rem; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
-.navbar-scrolled .brand-name { color: #004d4d; }
-.accent { color: #25d366; }
-
-.nav-links { display: flex; align-items: center; gap: 25px; }
-.nav-item { text-decoration: none; color: rgba(255,255,255,0.9); font-weight: 600; font-size: 0.95rem; transition: 0.3s; }
-.navbar-scrolled .nav-item { color: #555; }
-.nav-item:hover { color: #25d366; }
-
-.btn-admin-nav { 
-  background: #004d4d; color: white; text-decoration: none; padding: 10px 20px; 
-  border-radius: 50px; font-weight: 700; font-size: 0.85rem; transition: 0.3s;
+.btn-admin { 
+  background: #004d4d; 
+  color: white !important; 
+  padding: 10px 22px; 
+  border-radius: 50px; /* Estilo Pill */
+  box-shadow: 0 4px 15px rgba(0,77,77,0.3);
+  transition: 0.3s;
 }
+.btn-admin:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,77,77,0.4); }
 
-.main-footer { text-align: center; padding: 60px 0; color: #888; font-size: 0.95rem; }
-.footer-line { height: 1px; background: radial-gradient(circle, #eee 0%, transparent 100%); margin-bottom: 30px; }
-
-@media (max-width: 768px) { .nav-item { display: none; } }
+/* Hamburguesa y Mobile igual que antes pero con colores actualizados */
+@media (max-width: 768px) {
+  .menu-toggle { display: flex; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; }
+  .bar { width: 28px; height: 3px; background: #004d4d; border-radius: 10px; transition: 0.3s; }
+  .nav-links {
+    position: fixed; top: 0; right: -100%; height: 100vh; width: 280px;
+    background: white; flex-direction: column; justify-content: center;
+    gap: 30px; transition: 0.4s; z-index: 1100; box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  }
+  .nav-active { right: 0 !important; }
+}
 </style>

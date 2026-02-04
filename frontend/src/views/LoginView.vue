@@ -35,7 +35,6 @@ const error = ref(false);
 const router = useRouter();
 
 const handleLogin = () => {
-  // Leemos las credenciales desde el archivo .env (prefijo VITE_)
   const correctUser = import.meta.env.VITE_ADMIN_USER;
   const correctPass = import.meta.env.VITE_ADMIN_PASS;
 
@@ -44,14 +43,30 @@ const handleLogin = () => {
     router.push('/admin');
   } else {
     error.value = true;
-    pass.value = ''; // Limpiamos la contraseña si falla
+    pass.value = '';
   }
 };
 </script>
 
 <style scoped>
-.login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: #f0f4f4; padding: 20px; }
-.login-card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+.login-wrapper { 
+  min-height: 100vh; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #f0f4f4; 
+  padding: 20px; 
+  box-sizing: border-box;
+}
+.login-card { 
+  background: white; 
+  padding: 40px; 
+  border-radius: 24px; 
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+  width: 100%; 
+  max-width: 400px; 
+  text-align: center; 
+}
 .login-logo { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #004d4d; object-fit: cover; }
 .accent { color: #25d366; }
 .subtitle { color: #666; margin-bottom: 30px; font-weight: 600; }
@@ -63,4 +78,8 @@ label { display: block; font-weight: 700; margin-bottom: 8px; color: #444; font-
 .btn-login:hover { background: #003333; transform: translateY(-2px); }
 .error-msg { color: #e53e3e; font-size: 0.85rem; margin-bottom: 15px; font-weight: bold; }
 .btn-back { display: block; margin-top: 25px; color: #888; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+
+@media (max-width: 480px) {
+  .login-card { padding: 30px 20px; }
+}
 </style>
