@@ -10,7 +10,7 @@ const routes = [
     path: '/admin', 
     name: 'admin', 
     component: AdminView,
-    meta: { requiresAuth: true } // Bloqueo de seguridad
+    //meta: { requiresAuth: true } // Bloqueo de seguridad
   }
 ]
 
@@ -19,7 +19,7 @@ const router = createRouter({
   routes
 })
 
-// GUARDIA DE SEGURIDAD
+/* // GUARDIA DE SEGURIDAD
 router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('isLogged') === 'true';
 
@@ -30,6 +30,6 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
-})
+}) */
 
 export default router
