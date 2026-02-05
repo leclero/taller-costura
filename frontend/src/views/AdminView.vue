@@ -118,10 +118,10 @@
         <div class="form-group full-width">
             <label>Rango / Rol</label>
             <select v-model="nuevoEmpleado.rol" class="custom-select">
-            <option value="Vendedor">Vendedor</option>
-            <option value="Ayudante">Ayudante</option>
-            <option value="admin">Administrador</option>
-            </select>
+<option value="Vendedor">Vendedor</option>
+<option value="Ayudante">Ayudante</option>
+<option value="admin">Administrador</option>
+</select>
         </div>
         </div>
         <div class="form-actions">
@@ -198,25 +198,19 @@ try {
 };
 
 const crearEmpleado = async () => {
-if(!nuevoEmpleado.value.user || !nuevoEmpleado.value.pass) return alert("Por favor, completa usuario y contraseña.");
-
-  // Creamos el objeto exactamente como lo espera el modelo de Usuario
-const datosUsuario = {
-    username: String(nuevoEmpleado.value.user).trim(),
-    password: String(nuevoEmpleado.value.pass).trim(),
-    rol: nuevoEmpleado.value.rol
-};
+if(!nuevoEmpleado.value.user || !nuevoEmpleado.value.pass) return alert("Completa los datos");
 
 try {
-    console.log("Enviando datos:", datosUsuario); // Para que verifiques en consola antes de salir
-    const res = await axios.post(`${AUTH_URL}/create-initial`, datosUsuario);
-    
-    alert("¡Excelente! Usuario creado correctamente.");
+    await axios.post(`${AUTH_URL}/create-initial`, {
+        username: nuevoEmpleado.value.user.trim(),
+        password: nuevoEmpleado.value.pass.trim(),
+        rol: nuevoEmpleado.value.rol // Ahora coincidirá con el enum del backend
+    });
+    alert("¡Usuario creado con éxito!");
     nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
 } catch (e) { 
-    const mensajeServidor = e.response?.data?.error || e.message;
-    console.error("Error detallado:", e.response?.data);
-    alert("No se pudo crear: " + mensajeServidor); 
+    console.error("Error:", e.response?.data);
+    alert("Error: " + (e.response?.data?.error || "Revisa el enum del backend"));
 }
 };
 const actualizarMiPerfil = async () => {
