@@ -44,15 +44,20 @@ try {
 }
 });
 
-// RUTA PARA CREAR EL SEGUNDO ADMINISTRADOR (Solo temporal o inicial)
 router.post('/create-initial', async (req, res) => {
 const { username, password, rol } = req.body;
 try {
+    // Verificamos si ya existe antes de intentar crear
+    const existe = await Usuario.findOne({ username });
+    if (existe) return res.status(400).json({ error: "Ese nombre de usuario ya está ocupado" });
+
     const nuevo = new Usuario({ username, password, rol });
     await nuevo.save();
     res.json({ message: "Usuario creado con éxito" });
 } catch (error) {
-    res.status(500).json({ error: "Error: El usuario ya existe" });
+    // ESTO ES CLAVE: Ahora nos dirá el error real (ej: si falta un campo)
+    console.error(error);
+    res.status(500).json({ error: error.message });
 }
 });
 

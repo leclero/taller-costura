@@ -198,25 +198,27 @@ try {
 };
 
 const crearEmpleado = async () => {
-if(!nuevoEmpleado.value.user || !nuevoEmpleado.value.pass) return alert("Faltan datos");
+if(!nuevoEmpleado.value.user || !nuevoEmpleado.value.pass) return alert("Por favor, completa usuario y contraseña.");
 
-try {
-    const res = await axios.post(`${AUTH_URL}/create-initial`, {
-        username: nuevoEmpleado.value.user.trim(), // Limpiamos espacios
-        password: nuevoEmpleado.value.pass,
-        rol: nuevoEmpleado.value.rol
-    });
-    
-    alert("¡Usuario creado con éxito!");
-    nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
-} catch (e) { 
-    // Esto nos dirá exactamente qué dice el backend (ej: "El usuario ya existe")
-    const mensajeError = e.response?.data?.error || e.response?.data?.message || "Error desconocido";
-    console.error("Detalle del error:", e.response?.data);
-    alert("Servidor dice: " + mensajeError); 
-}
+  // Creamos el objeto exactamente como lo espera el modelo de Usuario
+const datosUsuario = {
+    username: String(nuevoEmpleado.value.user).trim(),
+    password: String(nuevoEmpleado.value.pass).trim(),
+    rol: nuevoEmpleado.value.rol
 };
 
+try {
+    console.log("Enviando datos:", datosUsuario); // Para que verifiques en consola antes de salir
+    const res = await axios.post(`${AUTH_URL}/create-initial`, datosUsuario);
+    
+    alert("¡Excelente! Usuario creado correctamente.");
+    nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
+} catch (e) { 
+    const mensajeServidor = e.response?.data?.error || e.message;
+    console.error("Error detallado:", e.response?.data);
+    alert("No se pudo crear: " + mensajeServidor); 
+}
+};
 const actualizarMiPerfil = async () => {
 const myId = localStorage.getItem('userId');
 try {
