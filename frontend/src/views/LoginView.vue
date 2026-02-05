@@ -8,7 +8,7 @@
           <div class="logo-outer-circle">
             <img src="/Smith.jpg" alt="Logo" class="login-logo-img" @error="(e) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/3064/3064155.png'" />
           </div>
-          <h1 class="brand-text">Smith <span>Teilor</span></h1>
+          <h1 class="brand-text">Teilor <span>Smith</span></h1>
           <p class="brand-subtitle">Acceso Administrativo</p>
         </div>
 

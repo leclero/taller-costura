@@ -3,7 +3,7 @@
     <div class="nav-container">
       <router-link to="/" class="nav-logo" @click="navegarA('inicio')">
         <img src="/Smith.jpg" alt="Logo" class="logo-img">
-        <span class="logo-text">Smith <span class="accent">Teilor</span></span>
+        <span class="logo-text">Teilor <span class="accent">Smith</span></span>
       </router-link>
 
       <button class="menu-toggle" @click="menuOpen = !menuOpen" aria-label="Abrir menú">
