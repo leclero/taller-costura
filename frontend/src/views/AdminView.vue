@@ -31,7 +31,6 @@
             <option value="Nuestro Trabajo">Nuestro Trabajo (Carrusel)</option>
             </select>
         </div>
-        
         <div class="form-group full-width">
             <label>Imagen del Producto</label>
             <div class="st-drop-zone clickable" @click="$refs.fileInput.click()">
@@ -77,7 +76,6 @@
 
     <div v-if="puedeGestionarPersonal" class="admin-card" style="border-top: 5px solid #3498db;">
         <h3 class="card-subtitle">👥 Gestión de Personal</h3>
-        
         <div class="admin-form-grid">
         <div class="form-group">
             <label>Nombre del Empleado</label>
@@ -93,11 +91,12 @@
         <div class="form-group full-width">
             <label>Rango / Rol</label>
             <select v-model="nuevoEmpleado.rol" class="custom-select">
-  <option value="Vendedor">Vendedor</option>
-  <option value="Ayudante">Ayudante</option>
-  <option value="admin">Administrador</option>
-  <option value="Programador">Programador 🛠️</option>
-</select>
+            <option value="Vendedor">Vendedor</option>
+            <option value="Ayudante">Ayudante</option>
+            <option value="admin">Administrador</option>
+            <option value="dueño">Dueño 👑</option> 
+            <option value="Programador">Programador 🛠️</option>
+            </select>
         </div>
         </div>
 
@@ -110,22 +109,37 @@
         </div>
 
         <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-        <h4 class="card-subtitle">📋 Lista de Personal</h4>
+        <h4 class="card-subtitle">📋 Lista de Personal (Seguridad y Accesos)</h4>
         <div class="table-responsive">
         <table class="products-table">
             <thead>
-            <tr><th>Usuario</th><th>Rol</th><th>Acciones</th></tr>
+            <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Contraseña</th>
+                <th>Acciones</th>
+            </tr>
             </thead>
             <tbody>
             <tr v-for="user in listaEmpleados" :key="user._id">
                 <td><b>{{ user.username }}</b></td>
                 <td><span class="badge-rol">{{ user.rol }}</span></td>
+                <td>
+<code class="pass-display">
+    {{ puedeVerContraseña(user) ? user.password : '********' }}
+</code>
+</td>
                 <td class="actions-cell">
-                <template v-if="puedeEditarA(user.rol)">
+                <template v-if="user.username === nombreUsuarioActual">
+                    <button @click="prepararEdicionEmpleado(user)" class="btn-edit-self">✏️ Mi Perfil</button>
+                </template>
+                <template v-else-if="puedeEditarA(user)">
                     <button @click="prepararEdicionEmpleado(user)" class="btn-edit">✏️</button>
                     <button @click="eliminarEmpleado(user._id)" class="btn-delete">🗑️</button>
                 </template>
-                <span v-else class="text-locked">🔒 Protegido</span>
+                <template v-else>
+                    <span class="text-locked">🔒 Protegido</span>
+                </template>
                 </td>
             </tr>
             </tbody>
@@ -159,25 +173,43 @@ const AUTH_URL = 'https://api-taller-costura.onrender.com/api/auth';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 
 const puedeGestionarPersonal = computed(() => {
-  const r = rolActual.value.toLowerCase();
-  return r === 'dueño' || r === 'admin' || r === 'programador';
+const r = (rolActual.value || '').toLowerCase();
+return r === 'dueño' || r === 'admin' || r === 'programador';
 });
 
-// FUNCIÓN CLAVE: Determina si el usuario logueado puede editar a otro basado en su rol
-const puedeEditarA = (rolObjetivo) => {
-const miRol = rolActual.value.toLowerCase();
-const suRol = rolObjetivo.toLowerCase();
+const puedeEditarA = (usuarioObjetivo) => {
+const miRol = (rolActual.value || '').toLowerCase();
+const suRol = (usuarioObjetivo.rol || '').toLowerCase();
 
-  // Programador y Dueño tienen poder total
-if (miRol === 'programador' || miRol === 'dueño') return true; 
+if (miRol === 'programador' || miRol === 'dueño') {
+    const esSuperObjetivo = (suRol === 'programador' || suRol === 'dueño');
+    return !esSuperObjetivo; 
+}
 
 if (miRol === 'admin') {
-    // Admin NO edita a programadores, otros admins ni dueños
-    return suRol !== 'admin' && suRol !== 'dueño' && suRol !== 'programador';
+    return suRol === 'vendedor' || suRol === 'ayudante';
 }
 return false;
 };
+const puedeVerContraseña = (usuarioObjetivo) => {
+const miRol = (rolActual.value || '').toLowerCase();
+const suRol = (usuarioObjetivo.rol || '').toLowerCase();
+const miNombre = nombreUsuarioActual.value;
 
+  // 1. Siempre puedo ver mi propia contraseña
+if (miNombre === usuarioObjetivo.username) return true;
+
+  // 2. Dueño y Programador pueden ver las contraseñas de TODO el mundo
+if (miRol === 'dueño' || miRol === 'programador') return true;
+
+  // 3. El Admin puede ver contraseñas, EXCEPTO las de Dueño y Programador
+if (miRol === 'admin') {
+    return !(suRol === 'dueño' || suRol === 'programador');
+}
+
+  // 4. Otros rangos no ven nada (por seguridad extra)
+return false;
+};
 const obtener = async () => {
 try { const res = await axios.get(API_URL); productos.value = res.data; } catch (e) { console.error(e); }
 };
@@ -257,19 +289,13 @@ onMounted(() => { obtener(); obtenerEmpleados(); });
 <style scoped>
 .admin-page-wrapper { padding: 120px 0 50px; background-color: #f4f7f7; min-height: 100vh; }
 .admin-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
-
-/* NAV SUPERIOR ESTILO RECUPERADO */
 .top-admin-nav { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .badge-rol { background: #e6fffa; color: #004d4d; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-left: 10px; text-transform: uppercase; }
 .btn-logout { background: #fff1f1; color: #e53e3e; border: 1px solid #fed7d7; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-
-/* DRAG AND DROP ESTILO RECUPERADO */
 .st-drop-zone { border: 2px dashed #cbd5e0; border-radius: 20px; padding: 30px; text-align: center; background: #f8fafc; transition: 0.3s; cursor: pointer; position: relative; }
 .icon-folder { font-size: 3rem; margin-bottom: 10px; }
 .drop-preview { max-height: 150px; border-radius: 10px; }
 .btn-remove-img { position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.7); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-
-/* TABLAS Y BOTONES */
 .admin-card { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .full-width { grid-column: span 2; }
@@ -285,5 +311,8 @@ onMounted(() => { obtener(); obtenerEmpleados(); });
 .btn-delete { background: #fff5f5; border: none; padding: 8px; border-radius: 8px; cursor: pointer; }
 .btn-publish, .btn-add-user, .btn-save-config { background: #004d4d; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .btn-cancel { background: #f1f5f9; color: #475569; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
-.text-locked { color: #94a3b8; font-size: 0.85rem; font-style: italic; }
+.text-locked { color: #94a3b8; font-size: 0.85rem; font-style: italic; background: #f8fafc; padding: 4px 8px; border-radius: 6px; }
+.pass-display { background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-family: monospace; color: #475569; font-size: 0.9rem; border: 1px solid #e2e8f0; }
+.btn-edit-self { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+.btn-edit-self:hover { background: #bee3f8; }
 </style>
