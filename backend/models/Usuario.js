@@ -5,7 +5,8 @@ const usuarioSchema = new mongoose.Schema({
   password: { type: String, required: true },
   rol: { 
     type: String, 
-    enum: ['dueño', 'admin', 'Vendedor', 'Ayudante'], 
+    // Añadimos 'Programador' al enum
+    enum: ['dueño', 'admin', 'Vendedor', 'Ayudante', 'Programador'], 
     default: 'admin' 
   }
 });
