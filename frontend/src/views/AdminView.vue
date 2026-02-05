@@ -91,11 +91,11 @@
         <div class="form-group full-width">
             <label>Rango / Rol</label>
             <select v-model="nuevoEmpleado.rol" class="custom-select">
-            <option value="Vendedor">Vendedor</option>
-            <option value="Ayudante">Ayudante</option>
-            <option value="admin">Administrador</option>
-            <option value="dueño">Dueño 👑</option> 
-            <option value="Programador">Programador 🛠️</option>
+                <option value="Vendedor">Vendedor</option>
+                <option value="Ayudante">Ayudante</option>
+                <option value="admin">Administrador</option>
+                <option value="dueño">Dueño 👑</option> 
+                <option v-if="rolActual.toLowerCase() === 'programador'" value="Programador">Programador 🛠️</option>
             </select>
         </div>
         </div>
@@ -121,14 +121,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="user in listaEmpleados" :key="user._id">
+            <tr v-for="user in empleadosFiltrados" :key="user._id">
                 <td><b>{{ user.username }}</b></td>
                 <td><span class="badge-rol">{{ user.rol }}</span></td>
                 <td>
-<code class="pass-display">
-    {{ puedeVerContraseña(user) ? user.password : '********' }}
-</code>
-</td>
+                    <code class="pass-display">
+                        {{ puedeVerContraseña(user) ? user.password : '********' }}
+                    </code>
+                </td>
                 <td class="actions-cell">
                 <template v-if="user.username === nombreUsuarioActual">
                     <button @click="prepararEdicionEmpleado(user)" class="btn-edit-self">✏️ Mi Perfil</button>
@@ -172,110 +172,105 @@ const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
 const AUTH_URL = 'https://api-taller-costura.onrender.com/api/auth';
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dg1kg7aya/image/upload';
 
+// FILTRO DE SEGURIDAD: El Programador es invisible para Dueño y Admin
+const empleadosFiltrados = computed(() => {
+    const miRol = (rolActual.value || '').toLowerCase();
+    if (miRol === 'programador') return listaEmpleados.value;
+    return listaEmpleados.value.filter(u => (u.rol || '').toLowerCase() !== 'programador');
+});
+
 const puedeGestionarPersonal = computed(() => {
-const r = (rolActual.value || '').toLowerCase();
-return r === 'dueño' || r === 'admin' || r === 'programador';
+    const r = (rolActual.value || '').toLowerCase();
+    return r === 'dueño' || r === 'admin' || r === 'programador';
 });
 
 const puedeEditarA = (usuarioObjetivo) => {
-const miRol = (rolActual.value || '').toLowerCase();
-const suRol = (usuarioObjetivo.rol || '').toLowerCase();
-
-if (miRol === 'programador' || miRol === 'dueño') {
-    const esSuperObjetivo = (suRol === 'programador' || suRol === 'dueño');
-    return !esSuperObjetivo; 
-}
-
-if (miRol === 'admin') {
-    return suRol === 'vendedor' || suRol === 'ayudante';
-}
-return false;
+    const miRol = (rolActual.value || '').toLowerCase();
+    const suRol = (usuarioObjetivo.rol || '').toLowerCase();
+    if (miRol === 'programador' || miRol === 'dueño') {
+        const esSuperObjetivo = (suRol === 'programador' || suRol === 'dueño');
+        return !esSuperObjetivo; 
+    }
+    if (miRol === 'admin') return suRol === 'vendedor' || suRol === 'ayudante';
+    return false;
 };
+
 const puedeVerContraseña = (usuarioObjetivo) => {
-const miRol = (rolActual.value || '').toLowerCase();
-const suRol = (usuarioObjetivo.rol || '').toLowerCase();
-const miNombre = nombreUsuarioActual.value;
-
-  // 1. Siempre puedo ver mi propia contraseña
-if (miNombre === usuarioObjetivo.username) return true;
-
-  // 2. Dueño y Programador pueden ver las contraseñas de TODO el mundo
-if (miRol === 'dueño' || miRol === 'programador') return true;
-
-  // 3. El Admin puede ver contraseñas, EXCEPTO las de Dueño y Programador
-if (miRol === 'admin') {
-    return !(suRol === 'dueño' || suRol === 'programador');
-}
-
-  // 4. Otros rangos no ven nada (por seguridad extra)
-return false;
+    const miRol = (rolActual.value || '').toLowerCase();
+    const suRol = (usuarioObjetivo.rol || '').toLowerCase();
+    if (nombreUsuarioActual.value === usuarioObjetivo.username) return true;
+    if (miRol === 'dueño' || miRol === 'programador') return true;
+    if (miRol === 'admin') return !(suRol === 'dueño' || suRol === 'programador');
+    return false;
 };
+
+// FUNCIONES DE API
 const obtener = async () => {
-try { const res = await axios.get(API_URL); productos.value = res.data; } catch (e) { console.error(e); }
+    try { const res = await axios.get(API_URL); productos.value = res.data; } catch (e) { console.error(e); }
 };
 
 const obtenerEmpleados = async () => {
-try { const res = await axios.get(`${AUTH_URL}/users`); listaEmpleados.value = res.data; } catch (e) { console.error(e); }
+    try { const res = await axios.get(`${AUTH_URL}/users`); listaEmpleados.value = res.data; } catch (e) { console.error(e); }
 };
 
 const handleFileSelect = async (e) => {
-const file = e.target.files[0];
-if(!file) return;
-const formData = new FormData();
-formData.append('file', file);
-formData.append('upload_preset', 'taller-smith');
-try {
-    const res = await axios.post(CLOUDINARY_URL, formData);
-    nuevo.value.imagenUrl = res.data.secure_url;
-} catch (e) { alert("Error al subir imagen"); }
+    const file = e.target.files[0];
+    if(!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'taller-smith');
+    try {
+        const res = await axios.post(CLOUDINARY_URL, formData);
+        nuevo.value.imagenUrl = res.data.secure_url;
+    } catch (e) { alert("Error al subir imagen"); }
 };
 
 const guardarProducto = async () => {
-try {
-    if (editandoId.value) await axios.put(`${API_URL}/${editandoId.value}`, nuevo.value);
-    else await axios.post(API_URL, nuevo.value);
-    alert("¡Producto guardado!"); cancelarEdicion(); obtener();
-} catch (e) { alert("Error"); }
+    try {
+        if (editandoId.value) await axios.put(`${API_URL}/${editandoId.value}`, nuevo.value);
+        else await axios.post(API_URL, nuevo.value);
+        alert("¡Producto guardado!"); cancelarEdicion(); obtener();
+    } catch (e) { alert("Error"); }
 };
 
 const crearEmpleado = async () => {
-try {
-    await axios.post(`${AUTH_URL}/create-initial`, {
-    username: nuevoEmpleado.value.user,
-    password: nuevoEmpleado.value.pass,
-    rol: nuevoEmpleado.value.rol
-    });
-    alert("Empleado creado"); cancelarEdicionEmpleado(); obtenerEmpleados();
-} catch (e) { alert("Error: El usuario ya existe"); }
+    try {
+        await axios.post(`${AUTH_URL}/create-initial`, {
+            username: nuevoEmpleado.value.user,
+            password: nuevoEmpleado.value.pass,
+            rol: nuevoEmpleado.value.rol
+        });
+        alert("Empleado creado"); cancelarEdicionEmpleado(); obtenerEmpleados();
+    } catch (e) { alert("Error: El usuario ya existe"); }
 };
 
 const prepararEdicionEmpleado = (user) => {
-editandoEmpleadoId.value = user._id;
-nuevoEmpleado.value = { user: user.username, pass: user.password, rol: user.rol };
-window.scrollTo(0, 500);
+    editandoEmpleadoId.value = user._id;
+    nuevoEmpleado.value = { user: user.username, pass: user.password, rol: user.rol };
+    window.scrollTo(0, 500);
 };
 
 const actualizarEmpleado = async () => {
-try {
-    await axios.put(`${AUTH_URL}/user/${editandoEmpleadoId.value}`, {
-    username: nuevoEmpleado.value.user,
-    password: nuevoEmpleado.value.pass,
-    rol: nuevoEmpleado.value.rol
-    });
-    alert("Datos actualizados"); cancelarEdicionEmpleado(); obtenerEmpleados();
-} catch (e) { alert("Error"); }
+    try {
+        await axios.put(`${AUTH_URL}/user/${editandoEmpleadoId.value}`, {
+            username: nuevoEmpleado.value.user,
+            password: nuevoEmpleado.value.pass,
+            rol: nuevoEmpleado.value.rol
+        });
+        alert("Datos actualizados"); cancelarEdicionEmpleado(); obtenerEmpleados();
+    } catch (e) { alert("Error"); }
 };
 
 const eliminarEmpleado = async (id) => {
-if (confirm("¿Estás seguro de eliminar este acceso?")) {
-    await axios.delete(`${AUTH_URL}/user/${id}`);
-    obtenerEmpleados();
-}
+    if (confirm("¿Estás seguro de eliminar este acceso?")) {
+        await axios.delete(`${AUTH_URL}/user/${id}`);
+        obtenerEmpleados();
+    }
 };
 
 const cancelarEdicionEmpleado = () => {
-editandoEmpleadoId.value = null;
-nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
+    editandoEmpleadoId.value = null;
+    nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
 };
 
 const cargarEdicion = (p) => { editandoId.value = p._id; nuevo.value = { ...p }; window.scrollTo(0,0); };
