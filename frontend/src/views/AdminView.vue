@@ -80,7 +80,8 @@
                 </div>
             </div>
 
-            <div v-if="puedeGestionarPersonal" class="admin-card" style="border-top: 5px solid #3498db;">
+            <div v-if="puedeGestionarPersonal" id="form-personal" class="admin-card"
+                style="border-top: 5px solid #3498db;">
                 <h3 class="card-subtitle">👥 Gestión de Personal</h3>
                 <div class="admin-form-grid">
                     <div class="form-group">
@@ -101,19 +102,16 @@
                         <select v-model="nuevoEmpleado.rol" class="custom-select">
                             <option value="Vendedor">Vendedor</option>
                             <option value="Ayudante">Ayudante</option>
-
                             <option
                                 v-if="rolActual.toLowerCase() === 'admin' || rolActual.toLowerCase() === 'dueño' || rolActual.toLowerCase() === 'programador'"
                                 value="admin">
                                 Administrador
                             </option>
-
                             <option
                                 v-if="rolActual.toLowerCase() === 'dueño' || rolActual.toLowerCase() === 'programador'"
                                 value="dueño">
                                 Dueño 👑
                             </option>
-
                             <option v-if="rolActual.toLowerCase() === 'programador'" value="Programador">
                                 Programador 🛠️
                             </option>
@@ -175,7 +173,9 @@
                 <button @click="logout" class="btn-logout-secondary">Cerrar Sesión 🔒</button>
             </footer>
 
-        </div> <button @click="volverArriba" class="btn-scroll-top" :class="{ 'show': showScrollBtn }">
+        </div>
+
+        <button @click="volverArriba" class="btn-scroll-top" :class="{ 'show': showScrollBtn }">
             ↑
         </button>
     </div>
@@ -286,8 +286,17 @@ const crearEmpleado = async () => {
 
 const prepararEdicionEmpleado = (user) => {
     editandoEmpleadoId.value = user._id;
-    nuevoEmpleado.value = { user: user.username, pass: user.password, rol: user.rol };
-    window.scrollTo({ top: 500, behavior: 'smooth' });
+    nuevoEmpleado.value = {
+        user: user.username,
+        pass: user.password,
+        rol: user.rol
+    };
+
+    // SCROLL AUTOMÁTICO AL ID DEL FORMULARIO
+    const el = document.getElementById('form-personal');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 };
 
 const actualizarEmpleado = async () => {
@@ -310,7 +319,6 @@ const eliminarEmpleado = async (id) => {
 
 const cancelarEdicionEmpleado = () => {
     editandoEmpleadoId.value = null;
-    // Siempre resetear a un rol básico por seguridad
     nuevoEmpleado.value = { user: '', pass: '', rol: 'Vendedor' };
 };
 
@@ -382,6 +390,8 @@ onUnmounted(() => {
     padding: 30px;
     margin-bottom: 30px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    scroll-margin-top: 100px;
+    /* Evita que el scroll pegue la tarjeta al borde superior */
 }
 
 .admin-form-grid {
@@ -509,7 +519,6 @@ onUnmounted(() => {
     font-weight: bold;
 }
 
-/* FOOTER Y BOTÓN FLOTANTE */
 .admin-footer {
     margin-top: 50px;
     padding: 40px 0;
