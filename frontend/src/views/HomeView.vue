@@ -2,7 +2,7 @@
   <div class="smith-teilor-app">
     <header class="hero-premium">
       <div class="hero-content">
-        <h1>Smith Teilor</h1>
+        <h1>Teilor Smith</h1>
         <p>Alta Costura & Confección Personalizada</p>
       </div>
     </header>
@@ -121,7 +121,7 @@
     <footer class="st-footer">
       <div class="st-footer-content">
         <div class="st-footer-brand">
-          <h2>Smith Teilor</h2>
+          <h2>Teilor Smith</h2>
           <p>Pasión por la costura, compromiso con la calidad.</p>
         </div>
         <div class="st-footer-info">
@@ -136,7 +136,7 @@
         </div>
       </div>
       <div class="st-footer-bottom">
-        <p>© 2024 Smith Teilor - Todos los derechos reservados.</p>
+        <p>© 2024 Teilor Smith - Todos los derechos reservados.</p>
       </div>
     </footer>
 
@@ -310,7 +310,7 @@ const totalPrecioCalculado = computed(() => carrito.value.reduce((acc, i) => acc
 
 const enviarWhatsApp = () => {
   const lista = carrito.value.map(p => `• ${p.cantidad}x ${p.nombre}`).join('\n');
-  const msj = `¡Hola Smith Teilor! 👋\nHe armado este pedido:\n\n${lista}\n\n*Total: $${totalPrecioCalculado.value.toLocaleString()}*`;
+  const msj = `¡Hola Teilor Smith! 👋\nHe armado este pedido:\n\n${lista}\n\n*Total: $${totalPrecioCalculado.value.toLocaleString()}*`;
   window.open(`https://wa.me/5491168915378?text=${encodeURIComponent(msj)}`, '_blank');
 };
 

@@ -162,7 +162,7 @@ const handleLogin = async () => {
 }
 
 .brand-text span {
-  color: #2ecc71; /* El color verde de Smith Teilor */
+  color: #2ecc71; /* El color verde de Teilor Smith */
 }
 
 .brand-subtitle {

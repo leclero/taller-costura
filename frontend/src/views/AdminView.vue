@@ -10,7 +10,7 @@
         <button @click="logout" class="btn-logout">Cerrar Sesión 🔒</button>
     </div>
     
-    <h1 class="admin-title">Panel de Control - Smith Teilor</h1>
+    <h1 class="admin-title">Panel de Control - Teilor Smith</h1>
 
     <div class="admin-card">
         <h3 class="card-subtitle">{{ editandoId ? '📝 Editando Producto' : '🆕 Agregar Nuevo Producto' }}</h3>
