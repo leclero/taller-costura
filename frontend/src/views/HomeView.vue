@@ -8,9 +8,11 @@
     </header>
 
     <main class="main-content">
-      
+
       <section id="trabajos" class="section-container">
-        <div class="header-text"><h2>📸 Nuestro Trabajo</h2></div>
+        <div class="header-text">
+          <h2>📸 Nuestro Trabajo</h2>
+        </div>
         <div class="carousel-viewport" @mouseenter="stopAutoPlay" @mouseleave="startAutoPlay">
           <div class="carousel-track" :style="{ transform: `translateX(-${slideTrabajo * 100}%)` }">
             <div v-for="p in trabajos" :key="p._id" class="slide">
@@ -31,7 +33,9 @@
       </section>
 
       <section id="arreglos" class="section-container bg-soft">
-        <div class="header-text"><h2>🧵 Arreglos & Reparaciones</h2></div>
+        <div class="header-text">
+          <h2>🧵 Arreglos & Reparaciones</h2>
+        </div>
         <div class="st-grid">
           <div v-for="p in filtrados('Arreglo')" :key="p._id" class="st-card">
             <div class="st-img-box">
@@ -83,7 +87,9 @@
       </section>
 
       <section class="section-container bg-soft">
-        <div class="header-text"><h2>💬 Opiniones de Clientes</h2></div>
+        <div class="header-text">
+          <h2>💬 Opiniones de Clientes</h2>
+        </div>
         <div class="st-reviews-container">
           <div class="st-review-card">
             <div class="st-stars">★★★★★</div>
@@ -104,13 +110,16 @@
             <h3>📍 Mi Taller en Luján</h3>
             <p>Dr. Muñiz 402, Luján</p>
             <div class="st-frame-wrap">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.0!2d-59.1!3d-34.5!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzTCsDMwJzAwLjAiUyA1OcKwMDYnMDAuMCJX!5e0!3m2!1ses!2sar!4v1620000000000!5m2!1ses!2sar" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.0!2d-59.1!3d-34.5!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzTCsDMwJzAwLjAiUyA1OcKwMDYnMDAuMCJX!5e0!3m2!1ses!2sar!4v1620000000000!5m2!1ses!2sar"
+                width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
           </div>
           <div class="st-social-box">
             <h3>📱 Redes Sociales</h3>
             <div class="st-social-pills">
-              <a href="https://www.instagram.com/taller_confecciones.smith" target="_blank" class="st-pill ig">Instagram</a>
+              <a href="https://www.instagram.com/taller_confecciones.smith" target="_blank"
+                class="st-pill ig">Instagram</a>
               <a href="https://wa.me/5491168915378" target="_blank" class="st-pill wa">WhatsApp</a>
             </div>
           </div>
@@ -182,73 +191,401 @@
 
 <style scoped>
 /* BASES */
-.smith-teilor-app { background: #fdfdfd; color: #333; font-family: 'Inter', sans-serif; width: 100%; overflow-x: hidden; }
-.hero-premium { height: 40vh; background: #004d4d; color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
-.hero-content h1 { font-size: 3.5rem; font-weight: 800; }
-.section-container { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
-.header-text { text-align: center; margin-bottom: 40px; }
-.bg-soft { background: #f4f7f7; border-radius: 40px; }
+.smith-teilor-app {
+  background: #fdfdfd;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.hero-premium {
+  height: 40vh;
+  background: #004d4d;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+}
+
+.section-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+.header-text {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.bg-soft {
+  background: #f4f7f7;
+  border-radius: 40px;
+}
 
 /* CATÁLOGO CENTRADO */
-.st-cta-wrapper { display: flex; justify-content: center; margin: 20px 0 40px; }
-.st-btn-pill-catalog { background: #004d4d; color: white; border: none; padding: 18px 40px; border-radius: 100px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(0,77,77,0.2); }
-.st-btn-pill-catalog.is-open { background: #ff4757; }
+.st-cta-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 40px;
+}
+
+.st-btn-pill-catalog {
+  background: #004d4d;
+  color: white;
+  border: none;
+  padding: 18px 40px;
+  border-radius: 100px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 25px rgba(0, 77, 77, 0.2);
+}
+
+.st-btn-pill-catalog.is-open {
+  background: #ff4757;
+}
 
 /* COMENTARIOS (DISEÑO RECUPERADO) */
-.st-reviews-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 10px; }
-.st-review-card { background: white; padding: 30px; border-radius: 25px; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-bottom: 6px solid #004d4d; text-align: left; }
-.st-stars { color: #f1c40f; margin-bottom: 10px; font-size: 1.2rem; }
-.st-author { display: block; margin-top: 15px; font-weight: bold; color: #004d4d; }
+.st-reviews-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.st-review-card {
+  background: white;
+  padding: 30px;
+  border-radius: 25px;
+  max-width: 400px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  border-bottom: 6px solid #004d4d;
+  text-align: left;
+}
+
+.st-stars {
+  color: #f1c40f;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.st-author {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #004d4d;
+}
 
 /* CARRITO */
-.st-cart-root { position: fixed; bottom: 30px; right: 30px; z-index: 10000; }
-.st-fab { width: 75px; height: 75px; background: #004d4d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
-.st-badge { position: absolute; top: 0; right: 0; background: #ff4757; color: white; width: 26px; height: 26px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-weight: bold; }
-.st-cart-window { position: absolute; bottom: 85px; right: 0; width: 350px; background: white; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); overflow: hidden; }
-.st-cart-head { padding: 20px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
-.st-btn-clear { background: #fee; color: #ff4757; border: none; padding: 8px 12px; border-radius: 12px; font-size: 12px; cursor: pointer; }
-.st-cart-item { padding: 15px 20px; border-bottom: 1px solid #f9f9f9; }
-.st-qty-group { background: #f0f2f5; padding: 6px 12px; border-radius: 15px; display: flex; align-items: center; gap: 15px; }
-.st-qty-group button { border: none; background: white; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.st-btn-checkout { width: 100%; background: #25d366; color: white; border: none; padding: 22px; font-weight: 800; cursor: pointer; font-size: 1rem; }
+.st-cart-root {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 10000;
+}
+
+.st-fab {
+  width: 75px;
+  height: 75px;
+  background: #004d4d;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.st-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff4757;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  font-weight: bold;
+}
+
+.st-cart-window {
+  position: absolute;
+  bottom: 85px;
+  right: 0;
+  width: 350px;
+  background: white;
+  border-radius: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.st-cart-head {
+  padding: 20px;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.st-btn-clear {
+  background: #fee;
+  color: #ff4757;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.st-cart-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.st-qty-group {
+  background: #f0f2f5;
+  padding: 6px 12px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.st-qty-group button {
+  border: none;
+  background: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.st-btn-checkout {
+  width: 100%;
+  background: #25d366;
+  color: white;
+  border: none;
+  padding: 22px;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 1rem;
+}
 
 /* GRID Y CARDS */
-.st-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
-.st-card { background: white; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-.st-img-box { height: 320px; position: relative; }
-.st-img-box img { width: 100%; height: 100%; object-fit: cover; }
-.st-card-hover { position: absolute; inset: 0; background: rgba(0,77,77,0.85); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
-.st-card:hover .st-card-hover { opacity: 1; }
-.st-btn-buy { background: white; color: #004d4d; border: none; padding: 12px 25px; border-radius: 50px; font-weight: 800; cursor: pointer; }
-.st-card-body { padding: 20px; text-align: center; }
-.st-price { color: #2ecc71; font-weight: 800; font-size: 1.3rem; }
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+.st-card {
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.st-img-box {
+  height: 320px;
+  position: relative;
+}
+
+.st-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-card-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 77, 77, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.st-card:hover .st-card-hover {
+  opacity: 1;
+}
+
+.st-btn-buy {
+  background: white;
+  color: #004d4d;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 50px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.st-card-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.st-price {
+  color: #2ecc71;
+  font-weight: 800;
+  font-size: 1.3rem;
+}
 
 /* FOOTER */
-.st-footer { background: #1a1a1a; color: #fdfdfd; padding: 60px 20px 20px; margin-top: 40px; }
-.st-footer-content { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; border-bottom: 1px solid #333; padding-bottom: 40px; }
-.st-footer-brand h2 { color: #2ecc71; }
-.st-footer-bottom { text-align: center; padding-top: 25px; opacity: 0.5; font-size: 0.85rem; }
+.st-footer {
+  background: #1a1a1a;
+  color: #fdfdfd;
+  padding: 60px 20px 20px;
+  margin-top: 40px;
+}
+
+.st-footer-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 40px;
+}
+
+.st-footer-brand h2 {
+  color: #2ecc71;
+}
+
+.st-footer-bottom {
+  text-align: center;
+  padding-top: 25px;
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
 
 /* CARRUSEL */
-.carousel-viewport { position: relative; max-width: 450px; margin: 0 auto; border-radius: 30px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-.carousel-track { display: flex; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-.slide { min-width: 100%; }
-.work-label { padding: 20px; text-align: center; }
-.media-holder { height: 450px; }
-.media-holder img, .media-holder video { width: 100%; height: 100%; object-fit: cover; }
-.arrow { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; z-index: 5; font-weight: bold; }
-.prev { left: 15px; } .next { right: 15px; }
+.carousel-viewport {
+  position: relative;
+  max-width: 450px;
+  margin: 0 auto;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-track {
+  display: flex;
+  transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide {
+  min-width: 100%;
+}
+
+.work-label {
+  padding: 20px;
+  text-align: center;
+}
+
+.media-holder {
+  height: 450px;
+}
+
+.media-holder img,
+.media-holder video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  font-weight: bold;
+}
+
+.prev {
+  left: 15px;
+}
+
+.next {
+  right: 15px;
+}
 
 /* BUSCADOR */
-.st-search-wrapper { display: flex; justify-content: center; margin-bottom: 40px; }
-.st-search-box { position: relative; width: 100%; max-width: 500px; }
-.st-search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); }
-.st-modern-input { width: 100%; padding: 16px 20px 16px 55px; border-radius: 50px; border: 2px solid #eee; outline: none; }
+.st-search-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.st-search-box {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.st-search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.st-modern-input {
+  width: 100%;
+  padding: 16px 20px 16px 55px;
+  border-radius: 50px;
+  border: 2px solid #eee;
+  outline: none;
+}
 
 /* PILLS REDES */
-.st-pill { padding: 16px; border-radius: 18px; text-decoration: none; color: white; font-weight: bold; text-align: center; display: block; margin-bottom: 10px; }
-.ig { background: linear-gradient(45deg, #f09433, #bc1888); }
-.wa { background: #25d366; }
+.st-pill {
+  padding: 16px;
+  border-radius: 18px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.ig {
+  background: linear-gradient(45deg, #f09433, #bc1888);
+}
+
+.wa {
+  background: #25d366;
+}
 </style>
 
 <script setup>
@@ -280,8 +617,8 @@ const trabajos = computed(() => filtrados('Nuestro Trabajo'));
 const esVideo = (url) => url && (url.includes('.mp4') || url.includes('.webm'));
 
 const catalogoConfecciones = computed(() => {
-  return prendas.value.filter(p => 
-    p.categoria === 'Confección' && 
+  return prendas.value.filter(p =>
+    p.categoria === 'Confección' &&
     p.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
   );
 });
@@ -295,15 +632,15 @@ const stopAutoPlay = () => { clearInterval(timer); timer = null; };
 // Carrito (Se agrega silenciosamente, se abre por clic en el botón flotante)
 const agregarAlCarrito = (p) => {
   const ex = carrito.value.find(i => i._id === p._id);
-  if (ex) ex.cantidad++; else carrito.value.push({...p, cantidad: 1});
+  if (ex) ex.cantidad++; else carrito.value.push({ ...p, cantidad: 1 });
 };
 
 const modificarCantidad = (item, n) => { item.cantidad += n; if (item.cantidad < 1) quitarProducto(item._id); };
-const quitarProducto = (id) => { 
-  carrito.value = carrito.value.filter(i => i._id !== id); 
-  if (!carrito.value.length) showCart.value = false; 
+const quitarProducto = (id) => {
+  carrito.value = carrito.value.filter(i => i._id !== id);
+  if (!carrito.value.length) showCart.value = false;
 };
-const vaciarCarrito = () => { if(confirm("¿Deseas vaciar el pedido completo?")) { carrito.value = []; showCart.value = false; } };
+const vaciarCarrito = () => { if (confirm("¿Deseas vaciar el pedido completo?")) { carrito.value = []; showCart.value = false; } };
 
 const totalItems = computed(() => carrito.value.reduce((acc, i) => acc + i.cantidad, 0));
 const totalPrecioCalculado = computed(() => carrito.value.reduce((acc, i) => acc + (i.precio * i.cantidad), 0));
@@ -317,20 +654,20 @@ const enviarWhatsApp = () => {
 const toggleTienda = () => { showTienda.value = !showTienda.value; };
 const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/400x500?text=Smith+Teilor'; };
 
-const handleOutsideClick = (e) => { 
+const handleOutsideClick = (e) => {
   if (showCart.value && cartContainer.value && !cartContainer.value.contains(e.target)) {
     // Si haces clic fuera del carrito, se cierra.
     showCart.value = false;
   }
 };
 
-onMounted(() => { 
-  obtenerProductos(); 
-  window.addEventListener('click', handleOutsideClick); 
-  startAutoPlay(); 
+onMounted(() => {
+  obtenerProductos();
+  window.addEventListener('click', handleOutsideClick);
+  startAutoPlay();
 });
-onUnmounted(() => { 
-  window.removeEventListener('click', handleOutsideClick); 
-  stopAutoPlay(); 
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick);
+  stopAutoPlay();
 });
 </script>

@@ -3,11 +3,11 @@ const mongoose = require('mongoose'); // <--- ESTA ES LA LÍNEA QUE FALTA
 const usuarioSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  rol: { 
-    type: String, 
+  rol: {
+    type: String,
     // Añadimos 'Programador' al enum
-    enum: ['dueño', 'admin', 'Vendedor', 'Ayudante', 'Programador'], 
-    default: 'admin' 
+    enum: ['dueño', 'admin', 'Vendedor', 'Ayudante', 'Programador'],
+    default: 'admin'
   }
 });
 
