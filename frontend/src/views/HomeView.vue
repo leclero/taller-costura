@@ -111,8 +111,14 @@
             <p>Dr. Muñiz 402, Luján</p>
             <div class="st-frame-wrap">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.0!2d-59.1!3d-34.5!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzTCsDMwJzAwLjAiUyA1OcKwMDYnMDAuMCJX!5e0!3m2!1ses!2sar!4v1620000000000!5m2!1ses!2sar"
-                width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.472714571619!2d-59.123547!3d-34.572132!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bc7e953157d77b%3A0x6b1f2389d3876e6b!2sDr.%20Mu%C3%B1iz%20402%2C%20B6700%20Luj%C3%A1n%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1715000000000!5m2!1ses-419!2sar"
+  width="100%" 
+  height="250" 
+  style="border:0;" 
+  allowfullscreen="" 
+  loading="lazy" 
+  referrerpolicy="no-referrer-when-downgrade">
+</iframe>
             </div>
           </div>
           <div class="st-social-box">
@@ -145,7 +151,7 @@
         </div>
       </div>
       <div class="st-footer-bottom">
-        <p>© 2024 Teilor Smith - Todos los derechos reservados.</p>
+        <p>© 2026 Teilor Smith - Todos los derechos reservados.</p>
       </div>
     </footer>
 
@@ -186,8 +192,107 @@
         🛒 <span class="st-badge">{{ totalItems }}</span>
       </div>
     </div>
+
+    <button @click="volverArriba" class="btn-scroll-top" :class="{ 'show': showScrollBtn }">
+      ↑
+    </button>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import axios from 'axios';
+
+const prendas = ref([]);
+const carrito = ref([]);
+const showCart = ref(false);
+const showTienda = ref(false);
+const busqueda = ref('');
+const slideTrabajo = ref(0);
+const cartContainer = ref(null);
+const showScrollBtn = ref(false); // Ref para el botón de arriba
+let timer = null;
+
+const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+
+const obtenerProductos = async () => {
+  try {
+    const res = await axios.get(API_URL);
+    prendas.value = res.data;
+  } catch (e) {
+    console.error("Error API:", e);
+  }
+};
+
+const filtrados = (cat) => prendas.value.filter(p => p.categoria === cat);
+const trabajos = computed(() => filtrados('Nuestro Trabajo'));
+const esVideo = (url) => url && (url.includes('.mp4') || url.includes('.webm'));
+
+const catalogoConfecciones = computed(() => {
+  return prendas.value.filter(p =>
+    p.categoria === 'Confección' &&
+    p.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
+  );
+});
+
+// Navegación y Scroll
+const volverArriba = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const handleScroll = () => {
+  showScrollBtn.value = window.scrollY > 400;
+};
+
+// Carrusel
+const nextSlide = () => { if (trabajos.value.length) slideTrabajo.value = (slideTrabajo.value + 1) % trabajos.value.length; };
+const prevSlide = () => { if (trabajos.value.length) slideTrabajo.value = (slideTrabajo.value - 1 + trabajos.value.length) % trabajos.value.length; };
+const startAutoPlay = () => { if (!timer) timer = setInterval(nextSlide, 5000); };
+const stopAutoPlay = () => { clearInterval(timer); timer = null; };
+
+// Carrito
+const agregarAlCarrito = (p) => {
+  const ex = carrito.value.find(i => i._id === p._id);
+  if (ex) ex.cantidad++; else carrito.value.push({ ...p, cantidad: 1 });
+};
+
+const modificarCantidad = (item, n) => { item.cantidad += n; if (item.cantidad < 1) quitarProducto(item._id); };
+const quitarProducto = (id) => {
+  carrito.value = carrito.value.filter(i => i._id !== id);
+  if (!carrito.value.length) showCart.value = false;
+};
+const vaciarCarrito = () => { if (confirm("¿Deseas vaciar el pedido completo?")) { carrito.value = []; showCart.value = false; } };
+
+const totalItems = computed(() => carrito.value.reduce((acc, i) => acc + i.cantidad, 0));
+const totalPrecioCalculado = computed(() => carrito.value.reduce((acc, i) => acc + (i.precio * i.cantidad), 0));
+
+const enviarWhatsApp = () => {
+  const lista = carrito.value.map(p => `• ${p.cantidad}x ${p.nombre}`).join('\n');
+  const msj = `¡Hola Teilor Smith! 👋\nHe armado este pedido:\n\n${lista}\n\n*Total: $${totalPrecioCalculado.value.toLocaleString()}*`;
+  window.open(`https://wa.me/5491168915378?text=${encodeURIComponent(msj)}`, '_blank');
+};
+
+const toggleTienda = () => { showTienda.value = !showTienda.value; };
+const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/400x500?text=Smith+Teilor'; };
+
+const handleOutsideClick = (e) => {
+  if (showCart.value && cartContainer.value && !cartContainer.value.contains(e.target)) {
+    showCart.value = false;
+  }
+};
+
+onMounted(() => {
+  obtenerProductos();
+  window.addEventListener('click', handleOutsideClick);
+  window.addEventListener('scroll', handleScroll); // Activar scroll listener
+  startAutoPlay();
+});
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick);
+  window.removeEventListener('scroll', handleScroll); // Limpiar listener
+  stopAutoPlay();
+});
+</script>
 
 <style scoped>
 /* BASES */
@@ -230,7 +335,40 @@
   border-radius: 40px;
 }
 
-/* CATÁLOGO CENTRADO */
+/* BOTÓN VOLVER ARRIBA */
+.btn-scroll-top {
+  position: fixed;
+  bottom: 120px; /* Un poco más arriba para no tapar el carrito si aparece */
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: #004d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-scroll-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.btn-scroll-top:hover {
+  background: #006666;
+  transform: scale(1.1);
+}
+
+/* CATÁLOGO */
 .st-cta-wrapper {
   display: flex;
   justify-content: center;
@@ -255,13 +393,12 @@
   background: #ff4757;
 }
 
-/* COMENTARIOS (DISEÑO RECUPERADO) */
+/* REVIEWS */
 .st-reviews-container {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-  padding: 10px;
 }
 
 .st-review-card {
@@ -271,13 +408,11 @@
   max-width: 400px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
   border-bottom: 6px solid #004d4d;
-  text-align: left;
 }
 
 .st-stars {
   color: #f1c40f;
   margin-bottom: 10px;
-  font-size: 1.2rem;
 }
 
 .st-author {
@@ -287,7 +422,7 @@
   color: #004d4d;
 }
 
-/* CARRITO */
+/* CARRITO FLOTANTE */
 .st-cart-root {
   position: fixed;
   bottom: 30px;
@@ -323,7 +458,6 @@
   align-items: center;
   justify-content: center;
   border: 2px solid white;
-  font-weight: bold;
 }
 
 .st-cart-window {
@@ -335,61 +469,6 @@
   border-radius: 30px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-}
-
-.st-cart-head {
-  padding: 20px;
-  background: #f8f9fa;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-}
-
-.st-btn-clear {
-  background: #fee;
-  color: #ff4757;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.st-cart-item {
-  padding: 15px 20px;
-  border-bottom: 1px solid #f9f9f9;
-}
-
-.st-qty-group {
-  background: #f0f2f5;
-  padding: 6px 12px;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.st-qty-group button {
-  border: none;
-  background: white;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.st-btn-checkout {
-  width: 100%;
-  background: #25d366;
-  color: white;
-  border: none;
-  padding: 22px;
-  font-weight: 800;
-  cursor: pointer;
-  font-size: 1rem;
 }
 
 /* GRID Y CARDS */
@@ -428,9 +507,7 @@
   transition: 0.3s;
 }
 
-.st-card:hover .st-card-hover {
-  opacity: 1;
-}
+.st-card:hover .st-card-hover { opacity: 1; }
 
 .st-btn-buy {
   background: white;
@@ -439,26 +516,16 @@
   padding: 12px 25px;
   border-radius: 50px;
   font-weight: 800;
-  cursor: pointer;
 }
 
-.st-card-body {
-  padding: 20px;
-  text-align: center;
-}
-
-.st-price {
-  color: #2ecc71;
-  font-weight: 800;
-  font-size: 1.3rem;
-}
+.st-card-body { padding: 20px; text-align: center; }
+.st-price { color: #2ecc71; font-weight: 800; font-size: 1.3rem; }
 
 /* FOOTER */
 .st-footer {
   background: #1a1a1a;
   color: #fdfdfd;
   padding: 60px 20px 20px;
-  margin-top: 40px;
 }
 
 .st-footer-content {
@@ -467,20 +534,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 40px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 40px;
 }
 
-.st-footer-brand h2 {
-  color: #2ecc71;
-}
-
-.st-footer-bottom {
-  text-align: center;
-  padding-top: 25px;
-  opacity: 0.5;
-  font-size: 0.85rem;
-}
+.st-footer-bottom { text-align: center; padding-top: 25px; opacity: 0.5; font-size: 0.85rem; }
 
 /* CARRUSEL */
 .carousel-viewport {
@@ -489,33 +545,12 @@
   margin: 0 auto;
   border-radius: 30px;
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
-.carousel-track {
-  display: flex;
-  transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide {
-  min-width: 100%;
-}
-
-.work-label {
-  padding: 20px;
-  text-align: center;
-}
-
-.media-holder {
-  height: 450px;
-}
-
-.media-holder img,
-.media-holder video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.carousel-track { display: flex; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.slide { min-width: 100%; }
+.media-holder { height: 450px; }
+.media-holder img, .media-holder video { width: 100%; height: 100%; object-fit: cover; }
 
 .arrow {
   position: absolute;
@@ -527,38 +562,12 @@
   height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 5;
-  font-weight: bold;
 }
 
-.prev {
-  left: 15px;
-}
+.prev { left: 15px; }
+.next { right: 15px; }
 
-.next {
-  right: 15px;
-}
-
-/* BUSCADOR */
-.st-search-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-}
-
-.st-search-box {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-}
-
-.st-search-icon {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
+/* OTROS */
 .st-modern-input {
   width: 100%;
   padding: 16px 20px 16px 55px;
@@ -567,107 +576,17 @@
   outline: none;
 }
 
-/* PILLS REDES */
 .st-pill {
   padding: 16px;
   border-radius: 18px;
   text-decoration: none;
   color: white;
   font-weight: bold;
-  text-align: center;
   display: block;
   margin-bottom: 10px;
+  text-align: center;
 }
 
-.ig {
-  background: linear-gradient(45deg, #f09433, #bc1888);
-}
-
-.wa {
-  background: #25d366;
-}
+.ig { background: linear-gradient(45deg, #f09433, #bc1888); }
+.wa { background: #25d366; }
 </style>
-
-<script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import axios from 'axios';
-
-const prendas = ref([]);
-const carrito = ref([]);
-const showCart = ref(false);
-const showTienda = ref(false);
-const busqueda = ref('');
-const slideTrabajo = ref(0);
-const cartContainer = ref(null);
-let timer = null;
-
-const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
-
-const obtenerProductos = async () => {
-  try {
-    const res = await axios.get(API_URL);
-    prendas.value = res.data;
-  } catch (e) {
-    console.error("Error API:", e);
-  }
-};
-
-const filtrados = (cat) => prendas.value.filter(p => p.categoria === cat);
-const trabajos = computed(() => filtrados('Nuestro Trabajo'));
-const esVideo = (url) => url && (url.includes('.mp4') || url.includes('.webm'));
-
-const catalogoConfecciones = computed(() => {
-  return prendas.value.filter(p =>
-    p.categoria === 'Confección' &&
-    p.nombre.toLowerCase().includes(busqueda.value.toLowerCase())
-  );
-});
-
-// Carrusel
-const nextSlide = () => { if (trabajos.value.length) slideTrabajo.value = (slideTrabajo.value + 1) % trabajos.value.length; };
-const prevSlide = () => { if (trabajos.value.length) slideTrabajo.value = (slideTrabajo.value - 1 + trabajos.value.length) % trabajos.value.length; };
-const startAutoPlay = () => { if (!timer) timer = setInterval(nextSlide, 5000); };
-const stopAutoPlay = () => { clearInterval(timer); timer = null; };
-
-// Carrito (Se agrega silenciosamente, se abre por clic en el botón flotante)
-const agregarAlCarrito = (p) => {
-  const ex = carrito.value.find(i => i._id === p._id);
-  if (ex) ex.cantidad++; else carrito.value.push({ ...p, cantidad: 1 });
-};
-
-const modificarCantidad = (item, n) => { item.cantidad += n; if (item.cantidad < 1) quitarProducto(item._id); };
-const quitarProducto = (id) => {
-  carrito.value = carrito.value.filter(i => i._id !== id);
-  if (!carrito.value.length) showCart.value = false;
-};
-const vaciarCarrito = () => { if (confirm("¿Deseas vaciar el pedido completo?")) { carrito.value = []; showCart.value = false; } };
-
-const totalItems = computed(() => carrito.value.reduce((acc, i) => acc + i.cantidad, 0));
-const totalPrecioCalculado = computed(() => carrito.value.reduce((acc, i) => acc + (i.precio * i.cantidad), 0));
-
-const enviarWhatsApp = () => {
-  const lista = carrito.value.map(p => `• ${p.cantidad}x ${p.nombre}`).join('\n');
-  const msj = `¡Hola Teilor Smith! 👋\nHe armado este pedido:\n\n${lista}\n\n*Total: $${totalPrecioCalculado.value.toLocaleString()}*`;
-  window.open(`https://wa.me/5491168915378?text=${encodeURIComponent(msj)}`, '_blank');
-};
-
-const toggleTienda = () => { showTienda.value = !showTienda.value; };
-const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/400x500?text=Smith+Teilor'; };
-
-const handleOutsideClick = (e) => {
-  if (showCart.value && cartContainer.value && !cartContainer.value.contains(e.target)) {
-    // Si haces clic fuera del carrito, se cierra.
-    showCart.value = false;
-  }
-};
-
-onMounted(() => {
-  obtenerProductos();
-  window.addEventListener('click', handleOutsideClick);
-  startAutoPlay();
-});
-onUnmounted(() => {
-  window.removeEventListener('click', handleOutsideClick);
-  stopAutoPlay();
-});
-</script>
