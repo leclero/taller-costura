@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/Usuario');
 
-// LOGIN: Devuelve ID, ROL y USERNAME
+// LOGIN
 router.post('/login-db', async (req, res) => {
 const { user, pass } = req.body;
 try {
@@ -22,42 +22,53 @@ try {
 }
 });
 
-// ACTUALIZAR MI PROPIO PERFIL
-// Solo permite el cambio si el ID que se quiere editar es el MISMO del que está logueado
-router.put('/update-profile/:id', async (req, res) => {
-const { nuevoUsuario, nuevaPass, solicitanteId } = req.body;
-const targetId = req.params.id;
-
-if (solicitanteId !== targetId) {
-    return res.status(403).json({ error: "No puedes modificar los datos de otro administrador" });
-}
-
+// OBTENER TODOS LOS USUARIOS (Para la tabla del Admin)
+router.get('/users', async (req, res) => {
 try {
-    const actualizado = await Usuario.findByIdAndUpdate(targetId, {
-    username: nuevoUsuario,
-    password: nuevaPass
-    }, { new: true });
-
-    res.json({ message: "Tus datos han sido actualizados", user: actualizado.username });
+    const usuarios = await Usuario.find();
+    res.json(usuarios);
 } catch (error) {
-    res.status(500).json({ error: "Error al actualizar tu perfil" });
+    res.status(500).json({ error: "Error al obtener usuarios" });
 }
 });
 
+// CREAR USUARIO
 router.post('/create-initial', async (req, res) => {
 const { username, password, rol } = req.body;
 try {
-    // Verificamos si ya existe antes de intentar crear
     const existe = await Usuario.findOne({ username });
-    if (existe) return res.status(400).json({ error: "Ese nombre de usuario ya está ocupado" });
+    if (existe) return res.status(400).json({ error: "El usuario ya existe" });
 
     const nuevo = new Usuario({ username, password, rol });
     await nuevo.save();
     res.json({ message: "Usuario creado con éxito" });
 } catch (error) {
-    // ESTO ES CLAVE: Ahora nos dirá el error real (ej: si falta un campo)
-    console.error(error);
     res.status(500).json({ error: error.message });
+}
+});
+
+// EDITAR USUARIO (Cualquiera, por ID)
+router.put('/user/:id', async (req, res) => {
+const { username, password, rol } = req.body;
+try {
+    const actualizado = await Usuario.findByIdAndUpdate(req.params.id, {
+      username,
+      password,
+      rol
+    }, { new: true });
+    res.json(actualizado);
+} catch (error) {
+    res.status(500).json({ error: "Error al actualizar usuario" });
+}
+});
+
+// ELIMINAR USUARIO
+router.delete('/user/:id', async (req, res) => {
+try {
+    await Usuario.findByIdAndDelete(req.params.id);
+    res.json({ message: "Usuario eliminado correctamente" });
+} catch (error) {
+    res.status(500).json({ error: "Error al eliminar" });
 }
 });
 
