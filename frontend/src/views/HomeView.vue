@@ -3,7 +3,7 @@
     <header class="hero-premium">
       <div class="hero-content">
         <h1>Teilor Smith</h1>
-        <p>Alta Costura & Confección Personalizada</p>
+        <p>Corte y Confección: Guardapolvos, pijamas y blanco para el hogar. Especialistas en arreglos de cierres, bolsos, carteras y reformas en general.</p>
       </div>
     </header>
 
