@@ -1,35 +1,40 @@
 // === SECCIÓN 1: CONFIGURACIÓN E IMPORTACIONES ===
 const express = require('express');
 const router = express.Router();
-// Importamos el modelo de Usuario para interactuar con la colección en la base de datos
+const jwt = require('jsonwebtoken'); // <--- NUEVA: Importamos la librería para los tokens
 const Usuario = require('../models/Usuario');
 
 // === SECCIÓN 2: RUTA DE LOGIN (INICIO DE SESIÓN) ===
-// Esta ruta verifica si el usuario y la contraseña existen en la base de datos
 router.post('/login-db', async (req, res) => {
-    // Extraemos las credenciales enviadas desde el frontend
     const { user, pass } = req.body;
     try {
-        // Buscamos un usuario que coincida exactamente con el nombre y la clave
         const admin = await Usuario.findOne({ username: user, password: pass });
         
         if (admin) {
-            // Si existe, respondemos con los datos necesarios para la sesión
+            // --- NUEVO: Generamos el Token aquí ---
+            // Usamos la frase secreta de tu .env para "firmar" este pase
+            const token = jwt.sign(
+                { id: admin._id, rol: admin.rol }, 
+                process.env.JWT_SECRET, 
+                { expiresIn: '24h' } // El pase dura un día
+            );
+
+            // Respondemos enviando el TOKEN al frontend
             res.json({
                 success: true,
+                token: token,   // <--- ¡Esto es lo que ahora recibirá Vue!
                 id: admin._id,
                 rol: admin.rol,
                 username: admin.username
             });
         } else {
-            // Si no coincide, enviamos un error 401 (No autorizado)
             res.status(401).json({ success: false, message: "Usuario o clave incorrectos" });
         }
     } catch (error) {
+        console.error("Error en login:", error);
         res.status(500).json({ error: "Error en el servidor" });
     }
 });
-
 // === SECCIÓN 3: GESTIÓN DE USUARIOS (CRUD) ===
 
 // --- OBTENER TODOS LOS USUARIOS ---

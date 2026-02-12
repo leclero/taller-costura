@@ -1,9 +1,10 @@
 <template>
   <nav class="navbar" :class="{ 'navbar-solid': isScrolled || !isHome }">
     <div class="nav-container">
+      
       <router-link to="/" class="nav-logo" @click="navegarA('inicio')">
         <img src="/Smith.jpg" alt="Logo" class="logo-img">
-        <span class="logo-text">Teilor <span class="accent">Smith</span></span>
+        <span class="logo-text">Teilor <span class="smith-accent-text">Smith</span></span>
       </router-link>
 
       <button class="menu-toggle" @click="menuOpen = !menuOpen" aria-label="Abrir menú">
@@ -16,9 +17,13 @@
         <button @click="navegarA('inicio')" class="link-btn">Inicio</button>
         <button @click="navegarA('trabajos')" class="link-btn">Nuestro Trabajo</button>
         <button @click="navegarA('arreglos')" class="link-btn">Arreglos</button>
-        <router-link to="/admin" class="btn-admin" @click="menuOpen = false">Panel Admin</router-link>
+        
+        <router-link to="/admin" class="btn-smith btn-smith-primary" @click="menuOpen = false">
+          Panel Admin
+        </router-link>
       </div>
     </div>
+
     <div v-if="menuOpen" class="nav-overlay" @click="menuOpen = false"></div>
   </nav>
 
@@ -31,25 +36,21 @@ import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
 const router = useRouter();
-const isScrolled = ref(false);
-const menuOpen = ref(false);
-const isHome = computed(() => route.path === '/');
+const isScrolled = ref(false); 
+const menuOpen = ref(false);    
+const isHome = computed(() => route.path === '/'); 
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
 };
 
-// Lógica de navegación inteligente
 const navegarA = (id) => {
-  menuOpen.value = false;
-
+  menuOpen.value = false; 
   if (route.path !== '/') {
-    // Si NO estamos en el home, primero vamos al home
     router.push('/').then(() => {
       ejecutarScroll(id);
     });
   } else {
-    // Si YA estamos en el home, solo hacemos scroll
     ejecutarScroll(id);
   }
 };
@@ -64,7 +65,7 @@ const ejecutarScroll = (id) => {
         el.scrollIntoView({ behavior: 'smooth' });
       }
     }
-  }, 100); // Pequeño delay para asegurar que el DOM cargó
+  }, 100);
 };
 
 onMounted(() => {
@@ -77,22 +78,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Mantengo tus estilos originales y añado el estilo para los botones que ahora actúan como links */
-.link-btn {
-  background: none;
-  border: none;
-  color: #004d4d;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  padding: 0;
-  transition: 0.3s;
-  font-family: inherit;
-}
-
-.link-btn:hover {
-  color: #2ecc71;
-}
+/* NOTA: Ahora usamos var(--primary), var(--accent), etc. */
 
 .navbar {
   position: fixed;
@@ -106,7 +92,8 @@ onUnmounted(() => {
 .navbar-solid {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  /* Usamos la sombra del main.css */
+  box-shadow: var(--shadow);
 }
 
 .nav-container {
@@ -118,31 +105,23 @@ onUnmounted(() => {
   padding: 0 20px;
 }
 
-.nav-logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  gap: 12px;
-}
-
 .logo-img {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #004d4d;
+  border: 2px solid var(--primary);
 }
 
 .logo-text {
   font-weight: 800;
   font-size: 1.5rem;
-  color: #004d4d;
-  letter-spacing: -0.5px;
+  color: var(--primary);
+  margin-left: 10px;
 }
 
-.accent {
-  color: #2ecc71;
-}
+/* El rosa del taller definido en el CSS global */
+.smith-accent-text { color: var(--accent); }
 
 .nav-links {
   display: flex;
@@ -150,39 +129,23 @@ onUnmounted(() => {
   gap: 30px;
 }
 
-.btn-admin {
-  background: #004d4d;
-  color: white !important;
-  padding: 10px 22px;
-  border-radius: 50px;
-  box-shadow: 0 4px 15px rgba(0, 77, 77, 0.3);
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
   transition: 0.3s;
-  text-decoration: none;
+  font-family: inherit;
 }
 
-.btn-admin:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 77, 77, 0.4);
-}
+/* Al pasar el mouse, usamos el rosa de la marca */
+.link-btn:hover { color: var(--accent); }
+
+/* Quitamos todos los estilos viejos de .btn-admin porque 
+   ahora usamos btn-smith-primary del global */
 
 @media (max-width: 768px) {
-  .menu-toggle {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
-  .bar {
-    width: 28px;
-    height: 3px;
-    background: #004d4d;
-    border-radius: 10px;
-    transition: 0.3s;
-  }
-
   .nav-links {
     position: fixed;
     top: 0;
@@ -192,14 +155,10 @@ onUnmounted(() => {
     background: white;
     flex-direction: column;
     justify-content: center;
-    gap: 30px;
     transition: 0.4s;
     z-index: 1100;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    gap: 20px;
   }
-
-  .nav-active {
-    right: 0 !important;
-  }
+  .nav-active { right: 0 !important; }
 }
 </style>

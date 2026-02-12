@@ -1,9 +1,8 @@
 <template>
-    <div class="login-page-section">
-        <div class="admin-container login-flex">
-
-            <div class="smith-login-card">
-
+    <div class="login-page-wrapper">
+        <div class="admin-container">
+            
+            <div class="card-smith login-card">
                 <div class="login-header-branding">
                     <div class="logo-outer-circle">
                         <img src="/Smith.jpg" alt="Logo" class="login-logo-img"
@@ -13,18 +12,18 @@
                     <p class="brand-subtitle">Acceso Administrativo</p>
                 </div>
 
-                <form @submit.prevent="handleLogin" class="login-form">
-                    <div class="form-group">
+                <form @submit.prevent="handleLogin" class="admin-form-grid">
+                    <div class="form-group full-width">
                         <label class="login-label">Usuario</label>
-                        <input v-model="user" type="text" class="custom-input login-input" placeholder="Tu usuario"
+                        <input v-model="user" type="text" class="input-smith" placeholder="Tu usuario"
                             required :disabled="loading" />
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label class="login-label">Contraseña</label>
                         <div class="password-wrapper">
                             <input v-model="pass" :type="showPass ? 'text' : 'password'"
-                                class="custom-input login-input" placeholder="••••••••" required :disabled="loading" />
+                                class="input-smith" placeholder="••••••••" required :disabled="loading" />
                             <button type="button" @click="showPass = !showPass" class="btn-eye">
                                 {{ showPass ? '👁️' : '🙈' }}
                             </button>
@@ -32,12 +31,12 @@
                     </div>
 
                     <transition name="fade">
-                        <div v-if="error" class="login-error-box">
+                        <div v-if="error" class="login-error-box full-width">
                             ⚠️ Usuario o contraseña incorrectos
                         </div>
                     </transition>
 
-                    <button type="submit" class="btn-login-main" :disabled="loading">
+                    <button type="submit" class="btn-smith btn-smith-primary full-width" :disabled="loading" style="height: 55px;">
                         <span v-if="!loading">Entrar al Panel</span>
                         <span v-else>Verificando...</span>
                     </button>
@@ -75,8 +74,8 @@ const handleLogin = async () => {
         });
 
         if (res.data.success) {
-            // Guardamos la sesión y los datos necesarios para el AdminView
             localStorage.setItem('isLogged', 'true');
+            localStorage.setItem('userToken', res.data.token);
             localStorage.setItem('userId', res.data.id);
             localStorage.setItem('userRol', res.data.rol);
             localStorage.setItem('userName', res.data.username);
@@ -94,42 +93,28 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* Contenedor que se adapta bajo el Nav de App.vue */
-.login-page-section {
+/* Contenedor principal */
+.login-page-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 100px);
-    padding: 40px 20px;
+    min-height: calc(100vh - 80px); /* Ajuste para que no se pegue al borde */
     background-color: #f8fafb;
+    padding: 20px;
 }
 
-.login-flex {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-/* LA TARJETA PREMIUM REDONDEADA */
-.smith-login-card {
+.login-card {
     max-width: 440px;
-    width: 100%;
+    margin: 0 auto;
     padding: 50px 40px;
-    background: white;
-    border-radius: 45px;
-    /* Bordes muy redondeados según tu imagen */
-    box-shadow: 0 20px 60px rgba(0, 77, 77, 0.1);
     text-align: center;
 }
 
-.login-header-branding {
-    margin-bottom: 35px;
-}
-
+/* Branding */
 .logo-outer-circle {
     width: 90px;
     height: 90px;
-    border: 2px solid #004d4d;
+    border: 2px solid var(--primary);
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -138,66 +123,13 @@ const handleLogin = async () => {
     overflow: hidden;
 }
 
-.login-logo-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+.login-logo-img { width: 100%; height: 100%; object-fit: cover; }
+.brand-text { font-size: 1.8rem; font-weight: 800; color: var(--text-dark); margin: 0; }
+.brand-text span { color: #2ecc71; }
+.brand-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
 
-.brand-text {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #333;
-    margin: 0;
-}
-
-.brand-text span {
-    color: #2ecc71;
-    /* El color verde de Teilor Smith */
-}
-
-.brand-subtitle {
-    color: #94a3b8;
-    font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-.login-form {
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.login-label {
-    font-weight: 700;
-    color: #475569;
-    font-size: 0.85rem;
-    margin-bottom: 5px;
-    display: block;
-    padding-left: 5px;
-}
-
-/* Inputs personalizados */
-.login-input {
-    width: 100%;
-    height: 50px;
-    border: 2px solid #f1f5f9;
-    border-radius: 15px;
-    padding: 0 15px;
-    box-sizing: border-box;
-    transition: 0.3s;
-}
-
-.login-input:focus {
-    border-color: #2ecc71;
-    outline: none;
-}
-
-.password-wrapper {
-    position: relative;
-}
-
+/* Password visibility */
+.password-wrapper { position: relative; }
 .btn-eye {
     position: absolute;
     right: 15px;
@@ -209,64 +141,20 @@ const handleLogin = async () => {
     font-size: 1.2rem;
 }
 
-/* Botón principal estilo Smith */
-.btn-login-main {
-    width: 100%;
-    height: 55px;
-    background: #004d4d;
-    color: white;
-    border: none;
-    border-radius: 16px;
-    font-weight: 800;
-    font-size: 1.1rem;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: 0.3s;
-}
-
-.btn-login-main:hover:not(:disabled) {
-    background: #003333;
-    transform: translateY(-2px);
-}
-
-.btn-login-main:disabled {
-    background: #cbd5e1;
-    cursor: not-allowed;
-}
-
+/* Error feedback */
 .login-error-box {
     background-color: #fef2f2;
     color: #dc2626;
     padding: 12px;
     border-radius: 12px;
     font-weight: 700;
-    font-size: 0.85rem;
-    text-align: center;
+    margin: 10px 0;
 }
 
-.login-extra-links {
-    margin-top: 30px;
-}
+.login-extra-links { margin-top: 30px; }
+.back-link { color: var(--text-muted); text-decoration: none; font-weight: 600; transition: 0.3s; }
+.back-link:hover { color: var(--primary); }
 
-.back-link {
-    color: #94a3b8;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.back-link:hover {
-    color: #004d4d;
-}
-
-/* Transición suave para el error */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.3s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

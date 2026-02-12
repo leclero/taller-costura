@@ -1,21 +1,80 @@
+/* === 1. VARIABLES GLOBALES (El ADN de Teilor Smith) === */
 :root {
-  --rosa-taller: #ff69b4;
-  --rosa-claro: #fff5f8;
-  --gris-oscuro: #333;
+  --primary: #004d4d;        /* Verde elegante */
+  --primary-hover: #006666;
+  --accent: #3ad437;         /* Rosa Taller */
+  --bg-body: #f8fafb;
+  --white: #ffffff;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,0.04);
+  --border: 1px solid #f1f5f9;
+}
+
+/* === 2. RESET GENERAL === */
+* { 
+  box-sizing: border-box; 
+}
+
+/* AQUÍ ESTÁ EL TRUCO: Quitamos el subrayado a todos los enlaces del proyecto */
+a, .router-link-active, .router-link-exact-active {
+  text-decoration: none !important; 
+  color: inherit;
 }
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9f9f9;
-  color: var(--gris-oscuro);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-dark);
 }
-
-a {
+/* === 3. BOTONES UNIFICADOS (Clases Maestras) === */
+/* Usa estas clases en CUALQUIER archivo .vue */
+.btn-smith {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
   text-decoration: none;
-  color: inherit;
 }
 
-* {
-  box-sizing: border-box;
+.btn-smith:active { transform: scale(0.96); }
+
+.btn-smith-primary { background: var(--primary); color: white; }
+.btn-smith-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
+.btn-smith-accent { background: var(--accent); color: white; }
+.btn-smith-accent:hover { opacity: 0.9; transform: translateY(-2px); }
+
+.btn-smith-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+
+/* === 4. COMPONENTES REUTILIZABLES === */
+.card-smith {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: var(--shadow);
+  border: var(--border);
+}
+
+.input-smith {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #f1f5f9;
+  border-radius: var(--radius);
+  background: #f8fafc;
+  transition: 0.3s;
+}
+
+.input-smith:focus {
+  border-color: var(--primary);
+  background: white;
+  outline: none;
 }
