@@ -6,47 +6,52 @@ const Usuario = require('../models/Usuario');
 
 // === SECCIÓN 2: RUTA DE LOGIN (INICIO DE SESIÓN) ===
 router.post('/login-db', async (req, res) => {
-    const { user, pass } = req.body;
-    
     try {
-        // 1. Buscamos al usuario (Aseguramos que no haya espacios extras)
+        const { user, pass } = req.body;
+        console.log("--> Intento de login para:", user);
+
+        // 1. Validar conexión con la base de datos
         const admin = await Usuario.findOne({ 
             username: user.trim(), 
             password: pass.trim() 
         });
 
-        // 2. Si no existe, cortamos aquí con 401
         if (!admin) {
-            return res.status(401).json({ success: false, message: "Usuario o clave incorrectos" });
+            return res.status(401).json({ success: false, message: "Credenciales inválidas" });
         }
 
-        // 3. Verificamos que exista la clave secreta antes de firmar
+        // 2. Validar que la librería JWT esté cargada
+        if (typeof jwt.sign !== 'function') {
+            throw new Error("La librería jsonwebtoken no está cargada correctamente");
+        }
+
+        // 3. Validar la clave secreta
+        const secret = process.env.JWT_SECRET || "CLAVE_DE_EMERGENCIA_BORRAR_LUEGO";
         if (!process.env.JWT_SECRET) {
-            console.error("❌ ERROR: No se encontró JWT_SECRET en las variables de entorno");
-            return res.status(500).json({ error: "Configuración incompleta en el servidor" });
+            console.warn("⚠️ Usando clave de emergencia. Revisa las variables de Render.");
         }
 
-        // 4. Generamos el Token
+        // 4. Firmar Token
         const token = jwt.sign(
             { id: admin._id, rol: admin.rol }, 
-            process.env.JWT_SECRET, 
+            secret, 
             { expiresIn: '24h' }
         );
 
-        // 5. Respuesta exitosa
         return res.json({
             success: true,
-            token: token,
+            token,
             id: admin._id,
             rol: admin.rol,
             username: admin.username
         });
 
     } catch (error) {
-        console.error("🔥 Error real en el servidor:", error);
+        console.error("❌ ERROR CRÍTICO:", error.message);
+        // Esto enviará el detalle real a tu consola de Vue
         return res.status(500).json({ 
             error: "Error en el servidor", 
-            message: error.message 
+            detalle: error.message 
         });
     }
 });
