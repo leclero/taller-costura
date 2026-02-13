@@ -362,8 +362,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ESTILOS EXCLUSIVOS DEL PANEL ADMIN */
-.admin-page-wrapper { padding: 110px 0 50px; min-height: 100vh; }
+/* === ESTILOS BASE (ESCRITORIO) === */
+.admin-page-wrapper { padding: 110px 0 50px; min-height: 100vh; background-color: #f8fafb; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
 /* Mini Nav Interna */
@@ -372,6 +372,7 @@ onMounted(() => {
     background: white; padding: 15px 30px; border-radius: 20px; 
     margin-bottom: 30px; box-shadow: var(--shadow); 
 }
+.user-info { display: flex; align-items: center; gap: 10px; }
 .badge-rol { 
     background: var(--primary); color: white; padding: 4px 12px; 
     border-radius: 50px; font-size: 0.8rem; font-weight: 600; 
@@ -387,24 +388,24 @@ onMounted(() => {
 .full-width { grid-column: span 2; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
 
-/* Drag & Drop Personalizado */
+/* Drag & Drop */
 .st-drop-zone { border: 2px dashed #cbd5e1; border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; background: #f8fafc; }
 .st-drop-zone.drag-active { border-color: var(--primary); background: #f0fdfa; transform: scale(1.01); }
 .icon-folder { font-size: 2.5rem; margin-bottom: 10px; }
-.drop-preview { max-height: 300px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+.drop-preview { max-height: 300px; width: auto; max-width: 100%; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 .preview-actions { margin-top: 15px; }
 
 /* Acciones */
 .form-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* Tabla - Estilos específicos */
-.table-responsive { overflow-x: auto; }
-.products-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+/* Tabla Responsiva */
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+.products-table { width: 100%; min-width: 600px; border-collapse: collapse; margin-top: 10px; }
 .products-table th { text-align: left; padding: 15px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
 .products-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 12px; }
 
-/* Botones de acción en tabla */
+/* Botones */
 .btn-edit, .btn-delete { padding: 8px; border-radius: 10px; border: none; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
 .btn-edit { background: #f0fdf4; color: #16a34a; margin-right: 5px; }
 .btn-delete { background: #fff1f2; color: #e11d48; }
@@ -418,60 +419,41 @@ onMounted(() => {
     position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; 
     border-radius: 50%; background: var(--primary); color: white; border: none; 
     cursor: pointer; opacity: 0; transform: translateY(20px); transition: 0.4s; 
-    pointer-events: none; box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+    pointer-events: none; box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 100;
 }
 .btn-scroll-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-.admin-footer { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 20px; }
-/* BOTÓN MI PERFIL (En la tabla de personal) */
-.btn-edit-self {
-    background: #eff6ff; /* Azul suave */
-    color: #2563eb;
-    border: 1px solid #bfdbfe;
-    padding: 8px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: 0.3s;
-    font-size: 0.85rem;
+/* === MEDIA QUERIES (AJUSTES PARA MÓVIL) === */
+@media (max-width: 768px) {
+    .admin-page-wrapper { padding: 90px 10px 30px; }
+    .admin-container { padding: 0; }
+    
+    .top-admin-nav { 
+        flex-direction: column; 
+        padding: 20px; 
+        gap: 15px; 
+        text-align: center; 
+    }
+    
+    .user-info { flex-direction: column; gap: 5px; }
+    
+    .admin-form-grid { grid-template-columns: 1fr; gap: 15px; }
+    .full-width { grid-column: span 1; }
+    
+    .form-actions { flex-direction: column; }
+    .form-actions button { width: 100%; }
+    
+    .st-drop-zone { padding: 20px; }
+    
+    .admin-title { font-size: 1.4rem; }
 }
 
-.btn-edit-self:hover {
-    background: #2563eb;
-    color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
+/* Botones especiales */
+.btn-edit-self { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
+.btn-edit-self:hover { background: #2563eb; color: white; }
 
-/* BOTÓN CERRAR SESIÓN (Peligro/Rojo) */
-.btn-smith-danger {
-    background: #ff4757 !important; /* Rojo vibrante */
-    color: white !important;
-    border: none;
-    font-weight: bold;
-    border-radius: 12px;
-    transition: 0.3s;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.btn-smith-danger { background: #ff4757 !important; color: white !important; border: none; font-weight: bold; border-radius: 12px; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 20px; }
+.btn-smith-danger:hover { background: #e03141 !important; transform: translateY(-2px); }
 
-.btn-smith-danger:hover {
-    background: #e03141 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
-}
-
-/* Ajuste general para botones Smith si no los tenías definidos */
-.btn-smith {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    padding: 10px 20px;
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    transition: 0.3s;
-}
+.btn-smith { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; padding: 10px 20px; cursor: pointer; border: none; transition: 0.3s; }
 </style>
