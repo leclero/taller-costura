@@ -7,32 +7,47 @@ const Usuario = require('../models/Usuario');
 // === SECCIÓN 2: RUTA DE LOGIN (INICIO DE SESIÓN) ===
 router.post('/login-db', async (req, res) => {
     const { user, pass } = req.body;
+    
     try {
-        const admin = await Usuario.findOne({ username: user, password: pass });
-        
-        if (admin) {
-            // --- NUEVO: Generamos el Token aquí ---
-            // Usamos la frase secreta de tu .env para "firmar" este pase
-            const token = jwt.sign(
-                { id: admin._id, rol: admin.rol }, 
-                process.env.JWT_SECRET, 
-                { expiresIn: '24h' } // El pase dura un día
-            );
+        // 1. Buscamos al usuario (Aseguramos que no haya espacios extras)
+        const admin = await Usuario.findOne({ 
+            username: user.trim(), 
+            password: pass.trim() 
+        });
 
-            // Respondemos enviando el TOKEN al frontend
-            res.json({
-                success: true,
-                token: token,   // <--- ¡Esto es lo que ahora recibirá Vue!
-                id: admin._id,
-                rol: admin.rol,
-                username: admin.username
-            });
-        } else {
-            res.status(401).json({ success: false, message: "Usuario o clave incorrectos" });
+        // 2. Si no existe, cortamos aquí con 401
+        if (!admin) {
+            return res.status(401).json({ success: false, message: "Usuario o clave incorrectos" });
         }
+
+        // 3. Verificamos que exista la clave secreta antes de firmar
+        if (!process.env.JWT_SECRET) {
+            console.error("❌ ERROR: No se encontró JWT_SECRET en las variables de entorno");
+            return res.status(500).json({ error: "Configuración incompleta en el servidor" });
+        }
+
+        // 4. Generamos el Token
+        const token = jwt.sign(
+            { id: admin._id, rol: admin.rol }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '24h' }
+        );
+
+        // 5. Respuesta exitosa
+        return res.json({
+            success: true,
+            token: token,
+            id: admin._id,
+            rol: admin.rol,
+            username: admin.username
+        });
+
     } catch (error) {
-        console.error("Error en login:", error);
-        res.status(500).json({ error: "Error en el servidor" });
+        console.error("🔥 Error real en el servidor:", error);
+        return res.status(500).json({ 
+            error: "Error en el servidor", 
+            message: error.message 
+        });
     }
 });
 // === SECCIÓN 3: GESTIÓN DE USUARIOS (CRUD) ===
