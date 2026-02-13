@@ -96,18 +96,29 @@
       <section class="section-container bg-soft">
         <div class="header-text">
           <h2>💬 Opiniones de Clientes</h2>
+          <p>La confianza de nuestros vecinos es lo primero</p>
         </div>
-        <div class="st-reviews-flex">
-          <div class="st-review-bubble">
-            <div class="st-stars">★★★★★</div>
-            <p>"Excelente atención y prolijidad total. Los arreglos quedaron impecables."</p>
-            <span class="st-author">— Ana G.</span>
-          </div>
-          <div class="st-review-bubble">
-            <div class="st-stars">★★★★★</div>
-            <p>"La mejor costurera de Luján. Hizo mi vestido soñado a medida."</p>
-            <span class="st-author">— Laura S.</span>
-          </div>
+        
+        <div class="st-reviews-carousel">
+          <transition name="fade-review" mode="out-in">
+            <div v-if="opinionesDeAPI.length > 0" :key="indiceOpinion" class="st-review-bubble active">
+              <div class="st-stars">★★★★★</div>
+              <p>"{{ formatearOpinion(opinionesDeAPI[indiceOpinion].nombre).texto }}"</p>
+              <span class="st-author">— {{ formatearOpinion(opinionesDeAPI[indiceOpinion].nombre).autor }}</span>
+            </div>
+            
+            <div v-else class="st-review-bubble active">
+              <div class="st-stars">★★★★★</div>
+              <p>"Excelente atención y prolijidad total en todos los trabajos."</p>
+              <span class="st-author">— Ana G.</span>
+            </div>
+          </transition>
+        </div>
+
+        <div class="st-testimonial-action">
+           <button @click="enviarTestimonio" class="st-btn-testimonial">
+             ✨ ¡Déjanos tu opinión por WhatsApp!
+           </button>
         </div>
       </section>
 
@@ -117,7 +128,7 @@
             <h3>📍 Mi Taller en Luján</h3>
             <p>Dr. Muñiz 402, Luján</p>
             <div class="st-frame-wrap">
-              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.0664973347575!2d-59.1232876!3d-34.5772421!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bc7df07248f29d%3A0xc47f48507204689d!2sDr.%20Mu%C3%B1iz%20402%2C%20Luj%C3%A1n%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses!2sar!4v1700000000000!5m2!1ses!2sar" width="100%" height="250" style="border:0; border-radius: 20px;" allowfullscreen="" loading="lazy"></iframe>
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.083818625974!2d-59.1171822!3d-34.577544!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bc7dfa81e3a65f%3A0xc310e3020616b20!2sDr.%20Mu%C3%B1iz%20402%2C%20Luj%C3%A1n%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses!2sar!4v1700000000000" width="100%" height="250" style="border:0; border-radius: 20px;" allowfullscreen="" loading="lazy"></iframe>
             </div>
           </div>
           <div class="st-social-box">
@@ -194,9 +205,42 @@ const showTienda = ref(false);
 const busqueda = ref('');
 const slideTrabajo = ref(0);
 const scrolled = ref(false);
+const indiceOpinion = ref(0);
 let timer = null;
+let timerOpiniones = null;
 
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
+
+// --- LÓGICA DE OPINIONES ---
+const opinionesDeAPI = computed(() => {
+  return prendas.value.filter(p => p.categoria === 'Opinión');
+});
+
+// Función para separar el nombre del texto (Ej: "Buena atención - Juan" -> {texto: "Buena atención", autor: "Juan"})
+const formatearOpinion = (textoCompleto) => {
+  let separador = textoCompleto.includes('—') ? '—' : (textoCompleto.includes('-') ? '-' : null);
+  
+  if (separador) {
+    const partes = textoCompleto.split(separador);
+    return {
+      texto: partes[0].trim(),
+      autor: partes[1].trim()
+    };
+  }
+  return { texto: textoCompleto, autor: "Cliente de Teilor Smith" };
+};
+
+const rotarOpiniones = () => {
+  if (opinionesDeAPI.value.length > 0) {
+    indiceOpinion.value = (indiceOpinion.value + 1) % opinionesDeAPI.value.length;
+  }
+};
+
+const enviarTestimonio = () => {
+  const mensaje = "Hola Teilor! Quería dejarte un testimonio sobre tu trabajo: ";
+  window.open(`https://wa.me/5491168915378?text=${encodeURIComponent(mensaje)}`, '_blank');
+};
+// ----------------------------
 
 watch(carrito, (nuevoCarrito) => {
   if (nuevoCarrito.length === 0) showCart.value = false;
@@ -214,7 +258,7 @@ const obtenerProductos = async () => {
 
 const filtrados = (cat) => prendas.value.filter(p => p.categoria === cat);
 const trabajos = computed(() => filtrados('Nuestro Trabajo'));
-const esVideo = (url) => url && (url.includes('.mp4') || url.includes('.webm'));
+const esVideo = (url) => url && (url.includes('.mp4') || url.includes('.webm') || url.includes('/video/'));
 
 const catalogoConfecciones = computed(() => {
   return prendas.value.filter(p => 
@@ -263,11 +307,14 @@ const handleImgError = (e) => { e.target.src = 'https://via.placeholder.com/400x
 onMounted(() => { 
   obtenerProductos(); 
   startAutoPlay(); 
+  // Rotación lenta: cada 9 segundos
+  timerOpiniones = setInterval(rotarOpiniones, 9000);
   window.addEventListener('scroll', handleScroll);
 });
 
 onUnmounted(() => { 
   stopAutoPlay(); 
+  clearInterval(timerOpiniones);
   window.removeEventListener('scroll', handleScroll);
 });
 
@@ -275,6 +322,20 @@ const toggleTienda = () => { showTienda.value = !showTienda.value; };
 </script>
 
 <style scoped>
+/* ESTILOS CARRUSEL OPINIONES */
+.st-reviews-carousel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 220px;
+}
+.fade-review-enter-active, .fade-review-leave-active {
+  transition: all 0.8s ease;
+}
+.fade-review-enter-from { opacity: 0; transform: translateY(10px); }
+.fade-review-leave-to { opacity: 0; transform: translateY(-10px); }
+
+/* Estilos Originales */
 .smith-teilor-app { background: #fdfdfd; color: #333; font-family: 'Inter', sans-serif; overflow-x: hidden;}
 .btn-scroll-top { position: fixed; bottom: 100px; right: 30px; width: 45px; height: 45px; background: #004d4d; color: white; border: none; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
 .hero-premium { height: 40vh; background: #004d4d; color: white; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 20px; }
@@ -299,8 +360,12 @@ const toggleTienda = () => { showTienda.value = !showTienda.value; };
 .st-search-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
 .st-search-box { display: flex; align-items: center; background: white; border: 2px solid #eee; border-radius: 15px; padding: 0 15px; width: 100%; max-width: 400px; }
 .st-modern-input { border: none !important; padding: 12px; width: 100%; outline: none; }
-.st-reviews-flex { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-.st-review-bubble { background: white; padding: 30px; border-radius: 30px; max-width: 450px; flex: 1; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+.st-review-bubble { background: white; padding: 30px; border-radius: 30px; max-width: 600px; width: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+.st-stars { color: #f1c40f; margin-bottom: 10px; font-size: 1.2rem; }
+.st-author { font-style: italic; color: #666; font-weight: bold; display: block; margin-top: 10px; }
+.st-testimonial-action { text-align: center; margin-top: 30px; }
+.st-btn-testimonial { background: #25d366; color: white; border: none; padding: 12px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+.st-btn-testimonial:hover { transform: scale(1.05); background: #20ba5a; }
 .st-social-pills { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
 .st-pill { padding: 12px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; color: white; }
 .st-pill.ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
@@ -313,8 +378,6 @@ const toggleTienda = () => { showTienda.value = !showTienda.value; };
 .arrow { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10; font-weight: bold;}
 .prev { left: 10px; } .next { right: 10px; }
 .st-footer-black { background: #1a1a1a; color: white; padding: 40px 20px; text-align: center; }
-
-/* ESTILOS DEL CARRITO BURBUJA */
 .st-cart-container { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
 .st-cart-bubble { position: absolute; bottom: 75px; right: 0; width: 320px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 15px; border: 1px solid #eee; display: flex; flex-direction: column; }
 .st-cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
@@ -332,12 +395,8 @@ const toggleTienda = () => { showTienda.value = !showTienda.value; };
 .st-cart-btns-flex { display: flex; gap: 8px; }
 .st-btn-empty-bubble { background: #fff; color: #ff4757; border: 1px solid #ff4757; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; font-size: 0.85rem; }
 .st-btn-checkout { background: #25d366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 2; font-size: 0.85rem; }
-
-/* BOTÓN FAB */
 .st-fab { width: 60px; height: 60px; background: #004d4d; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
 .st-badge { position: absolute; top: -5px; right: -5px; background: #ff4757; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
-
-/* ANIMACIONES */
 .bubble-enter-active, .bubble-leave-active { transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); transform-origin: bottom right; }
 .bubble-enter-from, .bubble-leave-to { opacity: 0; transform: scale(0.5) translateY(20px); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.4s; }

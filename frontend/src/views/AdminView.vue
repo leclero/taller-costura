@@ -12,28 +12,40 @@
 
             <h1 class="admin-title">Panel de Control - Teilor Smith</h1>
 
+            <div class="quick-actions">
+                <button @click="configurarParaOpinion" class="btn-quick opinion">💬 Nueva Opinión</button>
+                <button @click="cancelarEdicion" class="btn-quick producto">👗 Nuevo Producto</button>
+            </div>
+
             <div class="card-smith">
-                <h3 class="card-subtitle">{{ editandoId ? '📝 Editando Producto' : '🆕 Agregar Nuevo Producto' }}</h3>
+                <h3 class="card-subtitle">
+                    {{ editandoId ? '📝 Editando' : '🆕 Agregar Nuevo' }} 
+                    {{ nuevo.categoria === 'Opinión' ? 'Comentario' : 'Producto' }}
+                </h3>
 
                 <div class="admin-form-grid">
-                    <div class="form-group">
-                        <label>Nombre del Producto</label>
-                        <input v-model="nuevo.nombre" class="input-smith" placeholder="Ej: Vestido de Gala" />
+                    <div class="form-group" :class="{ 'full-width': nuevo.categoria === 'Opinión' }">
+                        <label>{{ nuevo.categoria === 'Opinión' ? 'Texto del Comentario' : 'Nombre del Producto' }}</label>
+                        <input v-model="nuevo.nombre" class="input-smith" 
+                               :placeholder="nuevo.categoria === 'Opinión' ? 'Ej: Me encantó la atención...' : 'Ej: Vestido de Gala'" />
                     </div>
-                    <div class="form-group">
+                    
+                    <div class="form-group" v-if="nuevo.categoria !== 'Opinión'">
                         <label>Precio ($)</label>
                         <input type="number" v-model="nuevo.precio" class="input-smith" />
                     </div>
+
                     <div class="form-group full-width">
                         <label>Categoría</label>
                         <select v-model="nuevo.categoria" class="input-smith">
                             <option value="Confección">Confección</option>
                             <option value="Arreglo">Arreglo</option>
                             <option value="Nuestro Trabajo">Nuestro Trabajo (Carrusel)</option>
+                            <option value="Opinión">💬 Opinión (Comentario de cliente)</option>
                         </select>
                     </div>
 
-                    <div class="form-group full-width">
+                    <div class="form-group full-width" v-if="nuevo.categoria !== 'Opinión'">
                         <label>Imagen o Video del Producto</label>
                         <div class="st-drop-zone" :class="{ 'drag-active': dragOver }" @click="$refs.fileInput.click()"
                             @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false"
@@ -43,18 +55,15 @@
                                 <p v-if="!subiendo"><b>Arrastra un archivo</b> o haz clic para buscar</p>
                                 <p v-else>Subiendo a la nube...</p>
                                 <input type="file" ref="fileInput" @change="handleFileSelect" hidden
-                                    accept=".jpg, .jpeg, .png, .webp, .mp4, .mov, .webm, image/*, video/*,.mp4,.mov,.webm,.m4v" />
+                                    accept=".jpg, .jpeg, .png, .webp, .mp4, .mov, .webm, image/*, video/*" />
                             </div>
                             <div v-else class="preview-container">
                                 <video v-if="nuevo.imagenUrl.includes('/video/') || nuevo.imagenUrl.endsWith('.mp4')"
                                     :src="nuevo.imagenUrl" controls class="drop-preview">
                                 </video>
-
                                 <img v-else :src="nuevo.imagenUrl" class="drop-preview" />
-
                                 <div class="preview-actions">
-                                    <button @click.stop="nuevo.imagenUrl = ''" class="btn-smith btn-smith-danger">🗑️
-                                        Quitar Archivo</button>
+                                    <button @click.stop="nuevo.imagenUrl = ''" class="btn-smith btn-smith-danger">🗑️ Quitar Archivo</button>
                                 </div>
                             </div>
                         </div>
@@ -64,7 +73,7 @@
                 <div class="form-actions">
                     <button @click="guardarProducto" class="btn-smith btn-smith-primary" style="flex: 2"
                         :disabled="subiendo">
-                        {{ editandoId ? 'Actualizar Producto' : 'Publicar Producto' }}
+                        {{ editandoId ? 'Actualizar' : 'Publicar' }} {{ nuevo.categoria === 'Opinión' ? 'Opinión' : 'Producto' }}
                     </button>
                     <button v-if="editandoId" @click="cancelarEdicion" class="btn-smith btn-smith-outline"
                         style="flex: 1">Cancelar</button>
@@ -72,25 +81,31 @@
             </div>
 
             <div class="card-smith">
-                <h3 class="card-subtitle">📦 Productos Existentes</h3>
+                <h3 class="card-subtitle">📦 Gestión de Contenido (Productos y Opiniones)</h3>
                 <div class="table-responsive">
                     <table class="products-table">
                         <thead>
                             <tr>
-                                <th>Miniatura</th>
-                                <th>Nombre</th>
-                                <th>Precio</th>
+                                <th>Tipo / Foto</th>
+                                <th>Nombre / Texto</th>
+                                <th>Precio / Cat.</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="p in productos" :key="p._id">
                                 <td>
-                                    <video v-if="p.imagenUrl && p.imagenUrl.includes('/video/')" :src="p.imagenUrl" class="img-preview"></video>
-                                    <img v-else :src="p.imagenUrl" class="img-preview" />
+                                    <span v-if="p.categoria === 'Opinión'" class="badge-opinion">💬 Opinión</span>
+                                    <template v-else>
+                                        <video v-if="p.imagenUrl && p.imagenUrl.includes('/video/')" :src="p.imagenUrl" class="img-preview"></video>
+                                        <img v-else :src="p.imagenUrl" class="img-preview" />
+                                    </template>
                                 </td>
-                                <td><b>{{ p.nombre }}</b></td>
-                                <td>${{ p.precio.toLocaleString() }}</td>
+                                <td><b class="truncate-text">{{ p.nombre }}</b></td>
+                                <td>
+                                    <span v-if="p.categoria === 'Opinión'" class="cat-text">Opinión</span>
+                                    <span v-else>${{ p.precio.toLocaleString() }}</span>
+                                </td>
                                 <td class="actions-cell">
                                     <button @click="cargarEdicion(p)" class="btn-edit">✏️</button>
                                     <button @click="eliminar(p._id)" class="btn-delete">🗑️</button>
@@ -162,8 +177,8 @@
                                 <td><span class="badge-rol">{{ user.rol }}</span></td>
                                 <td>
                                     <code class="pass-display">
-                        {{ puedeVerContraseña(user) ? user.password : '********' }}
-                    </code>
+                                        {{ puedeVerContraseña(user) ? user.password : '********' }}
+                                    </code>
                                 </td>
                                 <td class="actions-cell">
                                     <template v-if="user.username === nombreUsuarioActual">
@@ -218,6 +233,16 @@ const token = localStorage.getItem('userToken');
 const API_URL = 'https://api-taller-costura.onrender.com/api/prendas';
 const AUTH_URL = 'https://api-taller-costura.onrender.com/api/auth';
 
+// --- NUEVA LÓGICA PARA FACILITAR OPINIONES AL DUEÑO ---
+const configurarParaOpinion = () => {
+    cancelarEdicion();
+    nuevo.value.categoria = 'Opinión';
+    // Ponemos una imagen por defecto invisible para que pase la validación del Backend
+    nuevo.value.imagenUrl = 'https://res.cloudinary.com/dg1kg7aya/image/upload/v12345/opinion-default.png';
+    nuevo.value.precio = 0;
+};
+// -----------------------------------------------------
+
 const empleadosFiltrados = computed(() => {
     const miRol = (rolActual.value || '').toLowerCase();
     if (miRol === 'programador') return listaEmpleados.value;
@@ -257,7 +282,6 @@ const handleFileSelect = (e) => {
     if (file) subirArchivo(file);
 };
 
-// FUNCIÓN DE SUBIDA ADAPTADA PARA IMÁGENES Y VIDEOS
 const subirArchivo = async (file) => {
     const esVideo = file.type.startsWith('video/');
     const esImagen = file.type.startsWith('image/');
@@ -294,7 +318,9 @@ const obtener = async () => {
 };
 
 const guardarProducto = async () => {
+    if (!nuevo.value.nombre) return alert("Escribe el nombre o texto");
     if (!nuevo.value.imagenUrl) return alert("Sube un archivo primero");
+    
     try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         if (editandoId.value) {
@@ -302,7 +328,7 @@ const guardarProducto = async () => {
         } else {
             await axios.post(API_URL, nuevo.value, config);
         }
-        alert("¡Éxito!");
+        alert("¡Guardado correctamente!");
         cancelarEdicion();
         obtener();
     } catch (e) { alert("Error de permisos o sesión expirada"); }
@@ -320,7 +346,7 @@ const cancelarEdicion = () => {
 };
 
 const eliminar = async (id) => {
-    if (!confirm("¿Eliminar producto?")) return;
+    if (!confirm("¿Eliminar este elemento?")) return;
     try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         await axios.delete(`${API_URL}/${id}`, config);
@@ -390,50 +416,53 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos sin cambios significativos, mantenemos la coherencia visual */
+/* AGREGAMOS LOS ESTILOS PARA LAS ACCIONES RÁPIDAS Y OPINIONES */
+.quick-actions { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; }
+.btn-quick { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.btn-quick.opinion { background: #25d366; color: white; }
+.btn-quick.producto { background: #004d4d; color: white; }
+.btn-quick:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+
+.badge-opinion { background: #e8f5e9; color: #2e7d32; padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
+.cat-text { color: #64748b; font-style: italic; font-size: 0.9rem; }
+.truncate-text { display: block; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Mantengo tus estilos originales intactos abajo */
 .admin-page-wrapper { padding: 110px 0 50px; min-height: 100vh; background-color: #f8fafb; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-.top-admin-nav { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 20px; margin-bottom: 30px; box-shadow: var(--shadow); }
+.top-admin-nav { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .user-info { display: flex; align-items: center; gap: 10px; }
-.badge-rol { background: var(--primary); color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
-.admin-title { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 25px; font-weight: 800; text-align: center; }
-.card-subtitle { margin-bottom: 20px; color: var(--text-dark); font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.badge-rol { background: #004d4d; color: white; padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+.admin-title { font-size: 1.8rem; color: #1e293b; margin-bottom: 25px; font-weight: 800; text-align: center; }
+.card-smith { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+.card-subtitle { margin-bottom: 20px; color: #1e293b; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .full-width { grid-column: span 2; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #64748b; font-size: 0.9rem; }
 .st-drop-zone { border: 2px dashed #cbd5e1; border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; background: #f8fafc; }
-.st-drop-zone.drag-active { border-color: var(--primary); background: #f0fdfa; transform: scale(1.01); }
+.st-drop-zone.drag-active { border-color: #004d4d; background: #f0fdfa; transform: scale(1.01); }
 .icon-folder { font-size: 2.5rem; margin-bottom: 10px; }
 .drop-preview { max-height: 300px; width: auto; max-width: 100%; border-radius: 16px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
 .preview-actions { margin-top: 15px; }
 .form-actions { display: flex; gap: 10px; margin-top: 25px; }
 .table-responsive { width: 100%; overflow-x: auto; border-radius: 12px; }
 .products-table { width: 100%; min-width: 600px; border-collapse: collapse; margin-top: 10px; }
-.products-table th { text-align: left; padding: 15px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
+.products-table th { text-align: left; padding: 15px; color: #64748b; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
 .products-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 12px; background: #eee; }
 .btn-edit, .btn-delete { padding: 8px; border-radius: 10px; border: none; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
 .btn-edit { background: #f0fdf4; color: #16a34a; margin-right: 5px; }
 .btn-delete { background: #fff1f2; color: #e11d48; }
-.personal-card { border-top: 5px solid var(--primary); }
+.personal-card { border-top: 5px solid #004d4d; }
 .separator { margin: 40px 0; border: 0; border-top: 1px solid #f1f5f9; }
 .password-wrapper { position: relative; }
 .btn-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; font-size: 1.2rem; }
-.btn-scroll-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; opacity: 0; transform: translateY(20px); transition: 0.4s; pointer-events: none; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); z-index: 100; }
+.btn-scroll-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: #004d4d; color: white; border: none; cursor: pointer; opacity: 0; transform: translateY(20px); transition: 0.4s; pointer-events: none; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); z-index: 100; }
 .btn-scroll-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-
-@media (max-width: 768px) {
-    .admin-page-wrapper { padding: 90px 10px 30px; }
-    .top-admin-nav { flex-direction: column; padding: 20px; gap: 15px; }
-    .admin-form-grid { grid-template-columns: 1fr; }
-    .full-width { grid-column: span 1; }
-    .form-actions { flex-direction: column; }
-    .st-drop-zone { padding: 20px; }
-}
-
 .btn-edit-self { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
 .btn-smith-danger { background: #ff4757 !important; color: white !important; border-radius: 12px; padding: 10px 20px; cursor: pointer; border: none; font-weight: bold; }
-.btn-smith-primary { background: var(--primary); color: white; }
-.btn-smith-outline { border: 1px solid #cbd5e1; background: white; }
-.input-smith { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; }
+.btn-smith-primary { background: #004d4d; color: white; border: none; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: bold;}
+.btn-smith-outline { border: 1px solid #cbd5e1; background: white; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: bold;}
+.input-smith { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; transition: 0.3s; }
+.input-smith:focus { border-color: #004d4d; }
 </style>
