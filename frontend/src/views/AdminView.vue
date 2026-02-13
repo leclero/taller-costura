@@ -465,4 +465,48 @@ onMounted(() => {
 .btn-smith-outline { border: 1px solid #cbd5e1; background: white; border-radius: 12px; padding: 12px; cursor: pointer; font-weight: bold;}
 .input-smith { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; transition: 0.3s; }
 .input-smith:focus { border-color: #004d4d; }
+/* --- AJUSTES RESPONSIVOS PARA EL PANEL ADMIN --- */
+@media (max-width: 600px) {
+    .top-admin-nav {
+        flex-direction: column; /* Apila los elementos verticalmente */
+        padding: 20px;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .user-info {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    /* El botón ahora ocupará el ancho disponible sin salirse */
+    .top-admin-nav .btn-smith-danger {
+        width: 100%;
+        max-width: 250px;
+        margin: 0 auto;
+    }
+
+    /* Ajuste extra para la grilla de formularios en móvil */
+    .admin-form-grid {
+        grid-template-columns: 1fr; /* Una sola columna para inputs */
+    }
+    
+    .full-width {
+        grid-column: span 1;
+    }
+
+    .admin-title {
+        font-size: 1.4rem;
+        padding: 0 10px;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-quick {
+        width: 100%;
+    }
+}
 </style>
