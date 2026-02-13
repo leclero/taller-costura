@@ -7,7 +7,8 @@
                     <span class="user-welcome">Bienvenido, <b>{{ nombreUsuarioActual }}</b></span>
                     <span class="badge-rol">{{ rolActual }}</span>
                 </div>
-<button @click="logout" class="btn-smith btn-smith-danger">Cerrar Sesión 🔒</button>            </div>
+                <button @click="logout" class="btn-smith btn-smith-danger">Cerrar Sesión 🔒</button>
+            </div>
 
             <h1 class="admin-title">Panel de Control - Teilor Smith</h1>
 
@@ -46,7 +47,13 @@
                                 <div class="icon-folder">{{ subiendo ? '⏳' : '📂' }}</div>
                                 <p v-if="!subiendo"><b>Arrastra una imagen</b> o haz clic para buscar</p>
                                 <p v-else>Subiendo a la nube...</p>
-                                <input type="file" ref="fileInput" @change="handleFileSelect" hidden accept="image/*" />
+                                <input 
+                                    type="file" 
+                                    ref="fileInput" 
+                                    @change="handleFileSelect" 
+                                    hidden 
+                                    accept=".jpg, .jpeg, .png, .webp, image/*" 
+                                />
                             </div>
                             <div v-else class="preview-container">
                                 <img :src="nuevo.imagenUrl" class="drop-preview" />
@@ -180,7 +187,6 @@
 </template>
 
 <script setup>
-/* ... TODA TU LÓGICA DE SCRIPT QUEDA EXACTAMENTE IGUAL ... */
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -245,16 +251,26 @@ const handleFileSelect = (e) => {
     if (file) subirArchivo(file);
 };
 
+// FUNCIÓN DE SUBIDA CORREGIDA
 const subirArchivo = async (file) => {
+    if (!file.type.match('image.*')) {
+        alert("Por favor selecciona un archivo de imagen válido (jpg, png, webp).");
+        return;
+    }
+
     subiendo.value = true;
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'taller-smith'); 
+
     try {
-        const res = await axios.post(CLOUDINARY_URL, formData);
+        const res = await axios.post(CLOUDINARY_URL, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         nuevo.value.imagenUrl = res.data.secure_url;
     } catch (e) { 
-        alert("Error al subir imagen"); 
+        console.error("Error Cloudinary:", e.response?.data || e);
+        alert("Error al subir imagen. Verifica tu conexión o el formato del archivo."); 
     } finally {
         subiendo.value = false;
     }
@@ -366,7 +382,6 @@ onMounted(() => {
 .admin-page-wrapper { padding: 110px 0 50px; min-height: 100vh; background-color: #f8fafb; }
 .admin-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
-/* Mini Nav Interna */
 .top-admin-nav { 
     display: flex; justify-content: space-between; align-items: center; 
     background: white; padding: 15px 30px; border-radius: 20px; 
@@ -379,33 +394,27 @@ onMounted(() => {
     text-transform: uppercase; 
 }
 
-/* Títulos */
 .admin-title { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 25px; font-weight: 800; text-align: center; }
 .card-subtitle { margin-bottom: 20px; color: var(--text-dark); font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
 
-/* Grid del Formulario */
 .admin-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .full-width { grid-column: span 2; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
 
-/* Drag & Drop */
 .st-drop-zone { border: 2px dashed #cbd5e1; border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; background: #f8fafc; }
 .st-drop-zone.drag-active { border-color: var(--primary); background: #f0fdfa; transform: scale(1.01); }
 .icon-folder { font-size: 2.5rem; margin-bottom: 10px; }
 .drop-preview { max-height: 300px; width: auto; max-width: 100%; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 .preview-actions { margin-top: 15px; }
 
-/* Acciones */
 .form-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* Tabla Responsiva */
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
 .products-table { width: 100%; min-width: 600px; border-collapse: collapse; margin-top: 10px; }
 .products-table th { text-align: left; padding: 15px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
 .products-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 12px; }
 
-/* Botones */
 .btn-edit, .btn-delete { padding: 8px; border-radius: 10px; border: none; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
 .btn-edit { background: #f0fdf4; color: #16a34a; margin-right: 5px; }
 .btn-delete { background: #fff1f2; color: #e11d48; }
@@ -423,37 +432,22 @@ onMounted(() => {
 }
 .btn-scroll-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-/* === MEDIA QUERIES (AJUSTES PARA MÓVIL) === */
 @media (max-width: 768px) {
     .admin-page-wrapper { padding: 90px 10px 30px; }
     .admin-container { padding: 0; }
-    
-    .top-admin-nav { 
-        flex-direction: column; 
-        padding: 20px; 
-        gap: 15px; 
-        text-align: center; 
-    }
-    
+    .top-admin-nav { flex-direction: column; padding: 20px; gap: 15px; text-align: center; }
     .user-info { flex-direction: column; gap: 5px; }
-    
     .admin-form-grid { grid-template-columns: 1fr; gap: 15px; }
     .full-width { grid-column: span 1; }
-    
     .form-actions { flex-direction: column; }
     .form-actions button { width: 100%; }
-    
     .st-drop-zone { padding: 20px; }
-    
     .admin-title { font-size: 1.4rem; }
 }
 
-/* Botones especiales */
 .btn-edit-self { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
 .btn-edit-self:hover { background: #2563eb; color: white; }
-
 .btn-smith-danger { background: #ff4757 !important; color: white !important; border: none; font-weight: bold; border-radius: 12px; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 20px; }
 .btn-smith-danger:hover { background: #e03141 !important; transform: translateY(-2px); }
-
 .btn-smith { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; padding: 10px 20px; cursor: pointer; border: none; transition: 0.3s; }
 </style>
