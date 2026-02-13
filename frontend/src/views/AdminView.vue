@@ -43,7 +43,7 @@
                                 <p v-if="!subiendo"><b>Arrastra un archivo</b> o haz clic para buscar</p>
                                 <p v-else>Subiendo a la nube...</p>
                                 <input type="file" ref="fileInput" @change="handleFileSelect" hidden
-                                    accept=".jpg, .jpeg, .png, .webp, .mp4, .mov, .webm, image/*, video/*" />
+                                    accept=".jpg, .jpeg, .png, .webp, .mp4, .mov, .webm, image/*, video/*,.mp4,.mov,.webm,.m4v" />
                             </div>
                             <div v-else class="preview-container">
                                 <video v-if="nuevo.imagenUrl.includes('/video/') || nuevo.imagenUrl.endsWith('.mp4')"
